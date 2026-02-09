@@ -1,0 +1,611 @@
+Project phukien_shop {
+  database_type: "PostgreSQL"
+  Note: "Catalog + RBAC + Orders + Cart + Payment/Shipping + Inventory + Returns + SSE + Audit Log"
+}
+
+/* =========================================================
+   PART 1 - CATALOG (Categories / Brands / Products / Variants / Specs / Promotions)
+========================================================= */
+
+Table categories {
+  id bigserial [pk, increment]
+  name text [not null]
+  slug text [not null, unique]
+  parent_id bigint [null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table brands {
+  id bigserial [pk, increment]
+  name text [not null, unique]
+  slug text [not null, unique]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table product_lines {
+  id bigserial [pk, increment]
+  brand_id bigint [not null]
+  name text [not null]
+  slug text [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (brand_id, slug) [unique]
+  }
+}
+
+Table products {
+  id bigserial [pk, increment]
+  category_id bigint [null]
+  brand_id bigint [null]
+  product_line_id bigint [null]
+
+  name text [not null]
+  slug text [unique, null]
+  description text [null]
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+/* Options (color/size/storage...) */
+Table option_types {
+  id bigserial [pk, increment]
+  code text [not null, unique]   // color, size, storage...
+  name text [not null]
+}
+
+Table option_values {
+  id bigserial [pk, increment]
+  option_type_id bigint [not null]
+  value text [not null]          // Đen, Trắng, M, L, 128GB...
+  extra text [null]              // ví dụ: hex màu "#000000"
+
+  Indexes {
+    (option_type_id, value) [unique]
+  }
+}
+
+/* Category quyết định option types nào được phép dùng */
+Table category_option_types {
+  id bigserial [pk, increment]
+  category_id bigint [not null]
+  option_type_id bigint [not null]
+  is_required boolean [not null, default: false]
+  sort_order int [not null, default: 0]
+
+  Indexes {
+    (category_id, option_type_id) [unique]
+  }
+}
+
+/* Variants (tổ hợp option) */
+Table product_variants {
+  id bigserial [pk, increment]
+  product_id bigint [not null]
+
+  sku text [unique, null]
+  combination_key text [not null]   // "color=den|storage=128gb"
+  base_price int [not null, default: 0, note: "giá gốc nhập"]
+  sale_price int [not null, default: 0, note: "giá bán sau khi cộng % và trừ giảm giá"]
+  stock int [not null, default: 0]
+
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (product_id, combination_key) [unique]
+  }
+}
+
+Table variant_option_values {
+  id bigserial [pk, increment]
+  variant_id bigint [not null]
+  option_value_id bigint [not null]
+
+  Indexes {
+    (variant_id, option_value_id) [unique]
+  }
+}
+
+/* Images */
+Table product_images {
+  id bigserial [pk, increment]
+  product_id bigint [not null]
+  image_url text [not null]
+  sort_order int [not null, default: 0]
+}
+
+Table variant_images {
+  id bigserial [pk, increment]
+  variant_id bigint [not null]
+  image_url text [not null]
+  sort_order int [not null, default: 0]
+}
+
+/* Specs */
+Table attributes {
+  id bigserial [pk, increment]
+  code text [not null, unique]     // dpi, connection, switch_type...
+  name text [not null]
+  data_type text [not null, default: "text", note: "text|int|decimal|bool"]
+  unit text [null]
+}
+
+Table category_attributes {
+  id bigserial [pk, increment]
+  category_id bigint [not null]
+  attribute_id bigint [not null]
+  is_required boolean [not null, default: false]
+  sort_order int [not null, default: 0]
+
+  Indexes {
+    (category_id, attribute_id) [unique]
+  }
+}
+
+Table variant_attribute_values {
+  id bigserial [pk, increment]
+  variant_id bigint [not null]
+  attribute_id bigint [not null]
+  value_order int [not null, default: 0]
+
+  value_text text [null]
+  value_int int [null]
+  value_decimal decimal(12,2) [null]
+  value_bool boolean [null]
+
+  Indexes {
+    (variant_id, attribute_id, value_order) [unique]
+  }
+}
+
+/* Pricing settings */
+Table pricing_settings {
+  id bigserial [pk, increment]
+  rent_pct decimal(6,4) [not null, default: 0.0002]   // 0.02% = 0.0002
+  labor_pct decimal(6,4) [not null, default: 0.0004]  // 0.04% = 0.0004
+  tax_pct decimal(6,4) [not null, default: 0.0000]
+  other_pct decimal(6,4) [not null, default: 0.0000]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+/* Promotions */
+Table promotions {
+  id bigserial [pk, increment]
+  name text [not null]
+  discount_pct decimal(6,4) [not null] // 10% = 0.10
+  starts_at timestamptz [null]
+  ends_at timestamptz [null]
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table promotion_variants {
+  id bigserial [pk, increment]
+  promotion_id bigint [not null]
+  variant_id bigint [not null]
+
+  Indexes {
+    (promotion_id, variant_id) [unique]
+  }
+}
+
+/* =========================================================
+   PART 2 - USERS + RBAC (1 role per user)
+========================================================= */
+
+Table roles {
+  id bigserial [pk, increment]
+  code text [not null, unique]   // admin, customer, staff_sales, staff_cs, staff_warehouse...
+  name text [not null]
+  is_system boolean [not null, default: false]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table permissions {
+  id bigserial [pk, increment]
+  code text [not null, unique]   // manage_products, manage_users, approve_orders...
+  name text [not null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table role_permissions {
+  id bigserial [pk, increment]
+  role_id bigint [not null]
+  permission_id bigint [not null]
+
+  Indexes {
+    (role_id, permission_id) [unique]
+  }
+}
+
+Table users {
+  id bigserial [pk, increment]
+  role_id bigint [not null]
+  email text [not null, unique]
+  password_hash text [not null]
+  status text [not null, default: "active", note: "active|banned"]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table employee_profiles {
+  id bigserial [pk, increment]
+  user_id bigint [not null, unique]
+  full_name text [null]
+  phone text [null]
+  employee_code text [unique, null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table role_change_logs {
+  id bigserial [pk, increment]
+  actor_user_id bigint [not null]
+  target_user_id bigint [not null]
+  old_role_id bigint [null]
+  new_role_id bigint [not null]
+  created_at timestamptz [not null, default: `now()`]
+  note text [null]
+}
+
+/* =========================================================
+   PART 3 - ORDERS FULL (buy by VARIANT) + approvals + status history + address snapshot
+========================================================= */
+
+Table orders {
+  id bigserial [pk, increment]
+  user_id bigint [not null]
+
+  status text [not null, default: "pending_approval",
+    note: "pending_approval|approved|rejected|shipping|done|cancel_requested|cancelled"
+  ]
+
+  subtotal int [not null, default: 0, note: "VND"]
+  discount_total int [not null, default: 0, note: "VND"]
+  shipping_fee int [not null, default: 0, note: "VND"]
+  total int [not null, default: 0, note: "VND"]
+
+  customer_note text [null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table order_items {
+  id bigserial [pk, increment]
+  order_id bigint [not null]
+  variant_id bigint [not null]
+
+  product_name text [not null]
+  variant_name text [not null]
+  sku text [null]
+
+  base_price int [not null]
+  sale_price int [not null]
+  discount_pct decimal(6,4) [not null, default: 0.0000]
+  unit_price int [not null]
+
+  qty int [not null]
+  line_total int [not null]
+
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table order_addresses {
+  id bigserial [pk, increment]
+  order_id bigint [not null, unique]
+  full_name text [not null]
+  phone text [not null]
+  address_line text [not null]
+  ward text [null]
+  district text [null]
+  city text [not null]
+}
+
+Table order_status_history {
+  id bigserial [pk, increment]
+  order_id bigint [not null]
+  old_status text [not null]
+  new_status text [not null]
+  changed_by bigint [null]
+  note text [null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table order_approvals {
+  id bigserial [pk, increment]
+  order_id bigint [not null]
+
+  request_type text [not null, note: "approve_order|cancel_order"]
+  requested_by bigint [not null]
+  requested_at timestamptz [not null, default: `now()`]
+
+  decision text [not null, default: "pending", note: "pending|approved|rejected"]
+  decided_by bigint [null]
+  decided_at timestamptz [null]
+  note text [null]
+}
+
+/* =========================================================
+   PART 4 - CART (DB)
+========================================================= */
+
+Table carts {
+  id bigserial [pk, increment]
+  user_id bigint [not null, unique]
+  status text [not null, default: "active", note: "active|checked_out|abandoned"]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table cart_items {
+  id bigserial [pk, increment]
+  cart_id bigint [not null]
+  variant_id bigint [not null]
+  qty int [not null, default: 1]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (cart_id, variant_id) [unique]
+  }
+}
+
+/* =========================================================
+   PART 5 - PAYMENT / SHIPPING
+========================================================= */
+
+Table payment_methods {
+  id bigserial [pk, increment]
+  code text [not null, unique]     // cod, bank, momo, vnpay...
+  name text [not null]
+  is_active boolean [not null, default: true]
+}
+
+Table payments {
+  id bigserial [pk, increment]
+  order_id bigint [not null]
+  method_id bigint [not null]
+
+  amount int [not null, note: "VND"]
+  status text [not null, default: "pending", note: "pending|paid|failed|refunded|cancelled"]
+
+  provider text [null]
+  provider_ref text [null]
+  paid_at timestamptz [null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table shipping_methods {
+  id bigserial [pk, increment]
+  code text [not null, unique]
+  name text [not null]
+  is_active boolean [not null, default: true]
+}
+
+Table shipments {
+  id bigserial [pk, increment]
+  order_id bigint [not null, unique]
+  method_id bigint [not null]
+
+  status text [not null, default: "new", note: "new|packed|shipped|delivered|returned|cancelled"]
+  tracking_code text [null]
+  shipped_at timestamptz [null]
+  delivered_at timestamptz [null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table order_item_discounts {
+  id bigserial [pk, increment]
+  order_item_id bigint [not null]
+  promotion_id bigint [null]
+  discount_pct decimal(6,4) [not null, default: 0.0000]
+  discount_amount int [not null, default: 0, note: "VND"]
+  note text [null]
+}
+
+/* =========================================================
+   PART 6 - INVENTORY MOVEMENTS (audit stock)
+========================================================= */
+
+Table inventory_movements {
+  id bigserial [pk, increment]
+  variant_id bigint [not null]
+  order_id bigint [null]
+  movement_type text [not null, note: "reserve|sale|restock|cancel|adjust"]
+  qty_change int [not null, note: "âm là trừ kho, dương là cộng kho"]
+  created_by bigint [null]
+  note text [null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+/* =========================================================
+   PART 7 - CANCELLATION / RETURNS / REFUNDS
+========================================================= */
+
+Table order_cancellations {
+  id bigserial [pk, increment]
+  order_id bigint [not null, unique]
+  requested_by bigint [not null]
+  reason text [null]
+  requested_at timestamptz [not null, default: `now()`]
+
+  decision text [not null, default: "pending", note: "pending|approved|rejected"]
+  decided_by bigint [null]
+  decided_at timestamptz [null]
+  note text [null]
+}
+
+Table returns {
+  id bigserial [pk, increment]
+  order_id bigint [not null]
+  requested_by bigint [not null]
+  reason text [null]
+
+  status text [not null, default: "requested", note: "requested|approved|rejected|received|refunded|closed"]
+
+  approved_by bigint [null]
+  approved_at timestamptz [null]
+
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table return_items {
+  id bigserial [pk, increment]
+  return_id bigint [not null]
+  order_item_id bigint [not null]
+  qty int [not null]
+  condition text [null, note: "new|opened|damaged"]
+  note text [null]
+}
+
+Table refunds {
+  id bigserial [pk, increment]
+  payment_id bigint [not null]
+  amount int [not null]
+  status text [not null, default: "pending", note: "pending|processed|failed"]
+  provider_ref text [null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+/* =========================================================
+   PART 8 - NOTIFICATIONS + SSE EVENTS
+========================================================= */
+
+Table event_logs {
+  id bigserial [pk, increment]
+  user_id bigint [null]
+  channel text [not null]        // orders, stock, user
+  event_type text [not null]     // order.status_changed, stock.updated...
+  payload json [not null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table notifications {
+  id bigserial [pk, increment]
+  user_id bigint [not null]
+  title text [not null]
+  body text [null]
+  payload json [null]
+  is_read boolean [not null, default: false]
+  created_at timestamptz [not null, default: `now()`]
+  read_at timestamptz [null]
+}
+
+/* =========================================================
+   AUDIT LOG - track all actions
+========================================================= */
+
+Table audit_logs {
+  id bigserial [pk, increment]
+  actor_user_id bigint [null]
+  actor_role_id bigint [null]
+  action text [not null]        // order.approve, user.create, product.delete...
+  object_type text [not null]   // order, user, product...
+  object_id bigint [null]
+  ip text [null]
+  user_agent text [null]
+  meta json [null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+/* =========================================================
+   RELATIONS (ALL)
+========================================================= */
+
+/* Part 1 */
+Ref: categories.parent_id > categories.id [delete: set null]
+
+Ref: product_lines.brand_id > brands.id [delete: cascade]
+
+Ref: products.category_id > categories.id [delete: set null]
+Ref: products.brand_id > brands.id [delete: set null]
+Ref: products.product_line_id > product_lines.id [delete: set null]
+
+Ref: option_values.option_type_id > option_types.id [delete: cascade]
+Ref: category_option_types.category_id > categories.id [delete: cascade]
+Ref: category_option_types.option_type_id > option_types.id [delete: cascade]
+
+Ref: product_variants.product_id > products.id [delete: cascade]
+Ref: variant_option_values.variant_id > product_variants.id [delete: cascade]
+Ref: variant_option_values.option_value_id > option_values.id [delete: restrict]
+
+Ref: product_images.product_id > products.id [delete: cascade]
+Ref: variant_images.variant_id > product_variants.id [delete: cascade]
+
+Ref: category_attributes.category_id > categories.id [delete: cascade]
+Ref: category_attributes.attribute_id > attributes.id [delete: cascade]
+
+Ref: variant_attribute_values.variant_id > product_variants.id [delete: cascade]
+Ref: variant_attribute_values.attribute_id > attributes.id [delete: cascade]
+
+Ref: promotion_variants.promotion_id > promotions.id [delete: cascade]
+Ref: promotion_variants.variant_id > product_variants.id [delete: cascade]
+
+/* Part 2 */
+Ref: users.role_id > roles.id [delete: restrict]
+Ref: role_permissions.role_id > roles.id [delete: cascade]
+Ref: role_permissions.permission_id > permissions.id [delete: cascade]
+
+Ref: employee_profiles.user_id > users.id [delete: cascade]
+
+Ref: role_change_logs.actor_user_id > users.id [delete: restrict]
+Ref: role_change_logs.target_user_id > users.id [delete: restrict]
+Ref: role_change_logs.old_role_id > roles.id [delete: set null]
+Ref: role_change_logs.new_role_id > roles.id [delete: restrict]
+
+/* Part 3 */
+Ref: orders.user_id > users.id [delete: restrict]
+
+Ref: order_items.order_id > orders.id [delete: cascade]
+Ref: order_items.variant_id > product_variants.id [delete: restrict]
+
+Ref: order_addresses.order_id > orders.id [delete: cascade]
+
+Ref: order_status_history.order_id > orders.id [delete: cascade]
+Ref: order_status_history.changed_by > users.id [delete: set null]
+
+Ref: order_approvals.order_id > orders.id [delete: cascade]
+Ref: order_approvals.requested_by > users.id [delete: restrict]
+Ref: order_approvals.decided_by > users.id [delete: set null]
+
+/* Part 4 */
+Ref: carts.user_id > users.id [delete: cascade]
+Ref: cart_items.cart_id > carts.id [delete: cascade]
+Ref: cart_items.variant_id > product_variants.id [delete: restrict]
+
+/* Part 5 */
+Ref: payments.order_id > orders.id [delete: cascade]
+Ref: payments.method_id > payment_methods.id [delete: restrict]
+
+Ref: shipments.order_id > orders.id [delete: cascade]
+Ref: shipments.method_id > shipping_methods.id [delete: restrict]
+
+Ref: order_item_discounts.order_item_id > order_items.id [delete: cascade]
+Ref: order_item_discounts.promotion_id > promotions.id [delete: set null]
+
+/* Part 6 */
+Ref: inventory_movements.variant_id > product_variants.id [delete: restrict]
+Ref: inventory_movements.order_id > orders.id [delete: set null]
+Ref: inventory_movements.created_by > users.id [delete: set null]
+
+/* Part 7 */
+Ref: order_cancellations.order_id > orders.id [delete: cascade]
+Ref: order_cancellations.requested_by > users.id [delete: restrict]
+Ref: order_cancellations.decided_by > users.id [delete: set null]
+
+Ref: returns.order_id > orders.id [delete: cascade]
+Ref: returns.requested_by > users.id [delete: restrict]
+Ref: returns.approved_by > users.id [delete: set null]
+
+Ref: return_items.return_id > returns.id [delete: cascade]
+Ref: return_items.order_item_id > order_items.id [delete: restrict]
+
+Ref: refunds.payment_id > payments.id [delete: cascade]
+
+/* Part 8 */
+Ref: event_logs.user_id > users.id [delete: set null]
+Ref: notifications.user_id > users.id [delete: cascade]
+
+/* Audit */
+Ref: audit_logs.actor_user_id > users.id [delete: set null]
+Ref: audit_logs.actor_role_id > roles.id [delete: set null]

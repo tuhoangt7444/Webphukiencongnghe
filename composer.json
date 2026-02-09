@@ -1,0 +1,9 @@
+{
+  "name": "nlcs/project",
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  },
+  "require": {}
+}
