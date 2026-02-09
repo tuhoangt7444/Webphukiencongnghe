@@ -4,98 +4,97 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\AdminProduct;
 
-final class AdminProductController extends Controller
-{
-    #hiển thị danh sách sản phẩm
-    public function index(): void
-    {
+final class AdminProductController extends Controller {
+    
+    public function index(): void {
         $rows = AdminProduct::list();
+        // CHỈ GỌI 1 LẦN với tham số layout admin
         $this->view('admin/products/index', [
-            'title' => 'Admin - Products',
+            'title' => 'Quản lý sản phẩm',
             'rows' => $rows
-        ]);
+        ], 'layouts/admin'); 
     }
-    #hiển thị form tạo sản phẩm mới
-    public function create(): void
-    {
+
+    public function create(): void {
         $this->view('admin/products/create', [
-            'title' => 'Tạo sản phẩm mới'
-        ]);
+            'title' => 'Thêm sản phẩm mới'
+        ], 'layouts/simple'); // Sử dụng layout đơn giản
     }
-    #xử lý tạo sản phẩm mới
-    public function store(): void
-    {
-        # trim cắt bỏ khoảng trắng đầu cuối
-        $name = trim((string)$this->request->input('name', ''));
-        if ($name === '') {
-            $this->response->send("Tên sản phẩm không được rỗng", 400);
-            return;
-        }
-        $data = [
-            'categogy_id' => $this->request->input('category_id'),
-            'brand_id' => $this->request->input('brand_id'),
-            'product_line_id' => $this->request->input('product_line_id'),
-            'name' => $name,
-            'slug' => trim((string)$this->request->input('slug', '')),
-            'description' => trim((string)$this->request->input('description', '')),
-            'is_active' => $this->request->input('is_active') ? 1 : 0,
 
-            # variant mặc định
-            'sku' => trim((string)$this->request->input('sku', '')),
-            'base_price' => (int)$this->request->input('base_price', 0),
-            'sale_price' => (int)$this->request->input('sale_price', 0),
-            'stock' => (int)$this->request->input('stock', 0),
-        ];
-
-        $id = AdminProduct::createWithDefaultVariant($data);
-        $this->response->redirect('/admin/products/' . $id . '/edit');
-    }
-    #hiển thị form sửa sản phẩm
-    public function edit(string $id): void
-    {
+    public function edit(string $id): void {
         $row = AdminProduct::find((int)$id);
-        if (!$row) {
-            $this->response->send("404 Not Found", 404);
-            return;
-        }
-
+        if (!$row) { $this->response->redirect('/admin/products'); return; }
+        
         $this->view('admin/products/edit', [
-            'title' => 'Sửa sản phẩm',
-            'row' => $row
-        ]);
+            'row' => $row, 
+            'title' => 'Sửa sản phẩm'
+        ], 'layouts/simple'); // Sử dụng layout đơn giản
     }
-    #xử lý cập nhật sản phẩm
-    public function update(string $id): void
-    {
+
+    public function store(): void {
+        try {
+            $basePrice = (int)$this->request->input('base_price', 0);
+            $salePrice = AdminProduct::calculateFinalPrice($basePrice);
+
+            $data = [
+                'name' => trim((string)$this->request->input('name')),
+                'slug' => trim((string)$this->request->input('slug')),
+                'description' => trim((string)$this->request->input('description')),
+                'is_active' => $this->request->input('is_active') == '1',
+                'sku' => trim((string)$this->request->input('sku')),
+                'stock' => (int)$this->request->input('stock', 0),
+                'base_price' => $basePrice,
+                'sale_price' => $salePrice
+            ];
+
+            AdminProduct::createWithDefaultVariant($data);
+            
+            $this->response->redirect('/admin/products');
+
+        } catch (\PDOException $e) {
+            if ($e->getCode() == '23505') {
+                $msg = "Lỗi: Dữ liệu này đã tồn tại (trùng Slug hoặc SKU).";
+                if (strpos($e->getMessage(), 'products_slug_key') !== false) {
+                    $msg = "Đường dẫn (Slug) này đã được sử dụng.";
+                } elseif (strpos($e->getMessage(), 'product_variants_sku_key') !== false) {
+                    $msg = "Mã SKU này đã tồn tại.";
+                }
+                
+                $_SESSION['error'] = $msg;
+                $_SESSION['old'] = $_POST; 
+                
+                $this->response->redirect('/admin/products/create');
+                return;
+            }
+
+            $_SESSION['error'] = "Có lỗi xảy ra: " . $e->getMessage();
+            $this->response->redirect('/admin/products/create');
+        }
+    }
+
+    public function update(string $id): void {
         $pid = (int)$id;
-        $row = AdminProduct::find($pid);
-        if (!$row) {
-            $this->response->send("404 Not Found", 404);
-            return;
-        }
+        $basePrice = (int)$this->request->input('base_price', 0);
+        $salePrice = AdminProduct::calculateFinalPrice($basePrice);
 
-        $name = trim((string)$this->request->input('name', ''));
-        if ($name === '') {
-            $this->response->send("Tên sản phẩm không được rỗng", 400);
-            return;
-        }
-
-        $data = [
-            'category_id' => $this->request->input('category_id'),
-            'brand_id' => $this->request->input('brand_id'),
-            'product_line_id' => $this->request->input('product_line_id'),
-            'name' => $name,
-            'slug' => trim((string)$this->request->input('slug', '')),
-            'description' => trim((string)$this->request->input('description', '')),
-            'is_active' => $this->request->input('is_active') ? 1 : 0,
+        $pData = [
+            'name' => trim((string)$this->request->input('name')),
+            'slug' => trim((string)$this->request->input('slug')),
+            'description' => trim((string)$this->request->input('description')),
+            'is_active' => $this->request->input('is_active') == '1'
+        ];
+        $vData = [
+            'sku' => trim((string)$this->request->input('sku')),
+            'base_price' => $basePrice,
+            'sale_price' => $salePrice,
+            'stock' => (int)$this->request->input('stock', 0)
         ];
 
-        AdminProduct::update($pid, $data);
-        $this->response->redirect('/admin/products/' . $pid . '/edit');
+        AdminProduct::update($pid, $pData, $vData);
+        $this->response->redirect('/admin/products');
     }
-    #xử lý xóa sản phẩm
-    public function destroy(string $id): void
-    {
+
+    public function destroy(string $id): void {
         AdminProduct::delete((int)$id);
         $this->response->redirect('/admin/products');
     }

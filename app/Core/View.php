@@ -10,22 +10,21 @@ namespace App\Core;
     
     public static function render(string $view, array $data = [], string $layout = 'layouts/main'): void
     {
-        # Kết xuất view chính
         extract($data, EXTR_SKIP);
         $base = dirname(__DIR__);
+        
         $viewFile = $base . '/Views/' . $view . '.php';
         $layoutFile = $base . '/Views/' . $layout . '.php';
 
         if(!file_exists($viewFile)) {
-            http_response_code(500);
-            echo "không tìm thấy view: " . $view;
-            return;
+            die("Không tìm thấy view: " . $viewFile);
         }
         if(!file_exists($layoutFile)) {
-            http_response_code(500);
-            echo "không tìm thấy layout: " . $layout;
-            return;
+            die("Không tìm thấy layout: " . $layoutFile);
         }
+
+        // Tạm thời comment dòng này sau khi thấy nó hiện chữ "layouts/admin"
+        // echo "<!-- Debug: Đang dùng layout: $layout -->"; 
 
         require $layoutFile;
     }

@@ -11,8 +11,8 @@ class Controller
         $this->request = $request;
         $this->response = $response;
     }
-    protected function view(string $view, array $data = []): void
+    protected function view(string $view, array $data = [], string $layout = 'layouts/main'): void
     {
-        View::render($view, $data);
+        View::render($view, $data, $layout);
     }
 }
