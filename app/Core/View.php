@@ -26,7 +26,11 @@ namespace App\Core;
         // Tạm thời comment dòng này sau khi thấy nó hiện chữ "layouts/admin"
         // echo "<!-- Debug: Đang dùng layout: $layout -->"; 
 
+        ob_start();
         require $layoutFile;
+        $content = (string)ob_get_clean();
+
+        echo self::injectCsrfTokenIntoPostForms($content);
     }
     # Hàm tạo trường CSRF
     public static function csrf_field(): string 
@@ -36,5 +40,26 @@ namespace App\Core;
             $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
         return '<input type="hidden" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
+    }
+
+    private static function injectCsrfTokenIntoPostForms(string $html): string
+    {
+        return (string)preg_replace_callback(
+            '/(<form\\b[^>]*\\bmethod\\s*=\\s*(?:"post"|\'post\'|post)[^>]*>)(.*?<\\/form>)/is',
+            function (array $m): string {
+                $openTag = $m[1];
+                $bodyAndClose = $m[2];
+
+                if (
+                    stripos($bodyAndClose, 'name="csrf_token"') !== false
+                    || stripos($bodyAndClose, "name='csrf_token'") !== false
+                ) {
+                    return $openTag . $bodyAndClose;
+                }
+
+                return $openTag . "\n" . self::csrf_field() . $bodyAndClose;
+            },
+            $html
+        );
     }
  }

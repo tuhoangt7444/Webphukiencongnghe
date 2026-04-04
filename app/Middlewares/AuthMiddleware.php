@@ -12,8 +12,7 @@ class AuthMiddleware implements MiddlewareInterface
         }
         #neu chua login
         if (!isset($_SESSION['user_id'])) {
-            http_response_code(401);
-            echo "401 Unauthorized - Please login to access this page.";
+            header('Location: /login?status=auth-required');
             return null;
         }
         return $next();

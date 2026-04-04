@@ -1,119 +1,161 @@
+﻿<?php
+$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/admin', PHP_URL_PATH) ?: '/admin';
+$pageTitle = $title ?? 'Quản trị hệ thống';
+
+$roleCode = (string)($_SESSION['user_role_code'] ?? '');
+$isSuperAdmin = $roleCode === 'admin';
+$userPermissions = $_SESSION['admin_permissions'] ?? [];
+if (!is_array($userPermissions)) {
+    $userPermissions = [];
+}
+
+$menu = [
+    ['label' => 'Dashboard', 'href' => '/admin', 'icon' => 'fa-gauge-high', 'permission' => 'admin.dashboard', 'active' => $currentPath === '/admin'],
+    ['label' => 'Quản lý sản phẩm', 'href' => '/admin/products', 'icon' => 'fa-box-open', 'permission' => 'admin.products', 'active' => str_starts_with($currentPath, '/admin/products')],
+    ['label' => 'Quản lý đơn hàng', 'href' => '/admin/orders', 'icon' => 'fa-cart-shopping', 'permission' => 'admin.orders', 'active' => str_starts_with($currentPath, '/admin/orders')],
+    ['label' => 'Quản lý người dùng', 'href' => '/admin/users', 'icon' => 'fa-users', 'permission' => 'admin.users', 'active' => str_starts_with($currentPath, '/admin/users')],
+    ['label' => 'Giảm giá sản phẩm', 'href' => '/admin/product-discounts', 'icon' => 'fa-tags', 'permission' => 'admin.product_discounts', 'active' => str_starts_with($currentPath, '/admin/product-discounts')],
+    ['label' => 'Quản lý danh mục', 'href' => '/admin/categories', 'icon' => 'fa-folder-tree', 'permission' => 'admin.categories', 'active' => str_starts_with($currentPath, '/admin/categories')],
+    ['label' => 'Quản lý phiếu giảm giá', 'href' => '/admin/vouchers', 'icon' => 'fa-ticket', 'permission' => 'admin.vouchers', 'active' => str_starts_with($currentPath, '/admin/vouchers')],
+    ['label' => 'Quản lý tồn kho', 'href' => '/admin/inventory', 'icon' => 'fa-warehouse', 'permission' => 'admin.inventory', 'active' => str_starts_with($currentPath, '/admin/inventory')],
+    ['label' => 'Quản lý đánh giá', 'href' => '/admin/reviews', 'icon' => 'fa-star', 'permission' => 'admin.reviews', 'active' => str_starts_with($currentPath, '/admin/reviews')],
+    ['label' => 'Quản lý banner', 'href' => '/admin/banners', 'icon' => 'fa-images', 'permission' => 'admin.banners', 'active' => str_starts_with($currentPath, '/admin/banners')],
+    ['label' => 'Quản lý bài viết', 'href' => '/admin/posts', 'icon' => 'fa-newspaper', 'permission' => 'admin.posts', 'active' => str_starts_with($currentPath, '/admin/posts')],
+    ['label' => 'Quản lý liên hệ', 'href' => '/admin/contacts', 'icon' => 'fa-envelope-open-text', 'permission' => 'admin.contacts', 'active' => str_starts_with($currentPath, '/admin/contacts')],
+    ['label' => 'Nhận ưu đãi', 'href' => '/admin/newsletters', 'icon' => 'fa-bullhorn', 'permission' => 'admin.newsletters', 'active' => str_starts_with($currentPath, '/admin/newsletters')],
+    ['label' => 'Phân quyền', 'href' => '/admin/roles', 'icon' => 'fa-user-shield', 'permission' => 'admin.roles', 'active' => str_starts_with($currentPath, '/admin/roles')],
+];
+
+$menu = array_values(array_filter($menu, static function (array $item) use ($isSuperAdmin, $userPermissions): bool {
+    if ($isSuperAdmin) {
+        return true;
+    }
+
+    $permission = (string)($item['permission'] ?? '');
+    return $permission !== '' && in_array($permission, $userPermissions, true);
+}));
+?>
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title><?= $title ?? 'Admin' ?></title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script>
-        tailwind.config = {
-          darkMode: "class",
-          theme: { extend: { colors: { "primary": "#1152d4", "background-dark": "#101622" }, fontFamily: { "display": ["Space Grotesk", "sans-serif"] } } }
-        }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title><?= \App\Core\View::e($pageTitle) ?> - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        .active-nav { background-color: rgba(17, 82, 212, 0.15); border-left: 3px solid #1152d4; color: #1152d4 !important; }
+        body { background: #f1f5f9; }
+        .admin-shell { min-height: 100vh; }
+        .admin-sidebar {
+            width: 270px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            z-index: 1030;
+            overflow-y: auto;
+        }
+        .admin-main {
+            margin-left: 270px;
+            min-height: 100vh;
+        }
+        .admin-brand {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        .admin-brand .title { font-weight: 800; letter-spacing: .02em; }
+        .menu-link {
+            color: #cbd5e1;
+            border-radius: 10px;
+            padding: .7rem .8rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            font-weight: 600;
+            font-size: .92rem;
+        }
+        .menu-link:hover { background: rgba(59,130,246,.18); color: #fff; }
+        .menu-link.active {
+            background: rgba(59,130,246,.32);
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(147,197,253,.35);
+        }
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            background: rgba(255,255,255,.95);
+            backdrop-filter: blur(6px);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        @media (max-width: 991.98px) {
+            .admin-sidebar { transform: translateX(-100%); transition: transform .25s ease; }
+            .admin-sidebar.show { transform: translateX(0); }
+            .admin-main { margin-left: 0; }
+        }
     </style>
 </head>
-<body class="bg-[#f6f6f8] dark:bg-[#101622] text-slate-100 font-display">
-<div class="flex min-h-screen">
-    <!-- SIDEBAR BẮT ĐẦU Ở ĐÂY -->
-    <aside class="w-64 flex-shrink-0 bg-white dark:bg-[#161b28] border-r border-slate-800 flex flex-col">
-        <div class="p-6 flex items-center gap-3">
-            <div class="p-2 rounded-lg flex items-center justify-center">
-            <img src="/images/logo.png"
-                alt="TúTech Logo"
-                class="h-8 w-auto">
+<body>
+<div class="admin-shell">
+    <aside id="adminSidebar" class="admin-sidebar">
+        <div class="admin-brand d-flex align-items-center gap-2">
+            <span class="badge text-bg-primary"><i class="fa-solid fa-microchip"></i></span>
+            <div>
+                <div class="title">TechGear Admin</div>
+                <small class="text-secondary">Management panel</small>
+            </div>
         </div>
-            <div class="dark:text-white text-slate-900 font-bold text-lg">TuTech</div>
-        </div>
-        <nav class="flex-1 px-3 mt-4 space-y-1">
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg active-nav" href="/admin">
-                <span class="text-sm font-semibold">Dashboard</span>
-            </a>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800" href="/admin/products">
-                <span class="text-sm font-medium">Products</span>
-            </a>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800" href="#">
-                <span class="text-sm font-medium">Orders</span>
-            </a>
-            <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800" href="#">
-                <span class="text-sm font-medium">Settings</span>
-            </a>
+        <nav class="p-3 d-grid gap-2">
+            <?php foreach ($menu as $item): ?>
+                <a class="menu-link <?= $item['active'] ? 'active' : '' ?>" href="<?= \App\Core\View::e($item['href']) ?>">
+                    <i class="fa-solid <?= \App\Core\View::e($item['icon']) ?>"></i>
+                    <span><?= \App\Core\View::e($item['label']) ?></span>
+                </a>
+            <?php endforeach; ?>
         </nav>
-        <div class="p-4 border-t border-slate-800">
-            <a href="/logout" class="flex items-center gap-3 p-2 text-slate-400 hover:text-white">
-                <span class="material-symbols-outlined">logout</span>
-                <span class="text-sm">Logout</span>
+        <div class="p-3 mt-auto border-top border-secondary border-opacity-25">
+            <a href="/logout" class="btn btn-outline-light w-100">
+                <i class="fa-solid fa-right-from-bracket me-1"></i> Đăng xuất
             </a>
         </div>
     </aside>
-    <!-- SIDEBAR KẾT THÚC -->
 
-    <!-- NỘI DUNG CHÍNH -->
-    <main class="flex-1 flex flex-col min-w-0">
-        <header class="h-16 flex items-center justify-between px-8 bg-white dark:bg-[#161b28] border-b border-slate-800">
-            <div class="text-slate-400 text-sm">TuTech Admin / <?= $title ?></div>
+    <div class="admin-main">
+        <header class="topbar px-3 px-lg-4 py-2">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <button id="sidebarToggle" class="btn btn-outline-secondary d-lg-none" type="button">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div>
+                        <div class="small text-muted text-uppercase">Khu vực quản trị</div>
+                        <div class="fw-bold"><?= \App\Core\View::e($pageTitle) ?></div>
+                    </div>
+                </div>
+                <a href="/" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-house me-1"></i>Về trang chủ</a>
+            </div>
         </header>
 
-        <div class="p-8 overflow-y-auto">
-            <!-- ĐÂY LÀ CHỖ HIỂN THỊ FILE dashboard.php HOẶC index.php -->
+        <main class="p-3 p-lg-4">
             <?php require $viewFile; ?>
-        </div>
-    </main>
+        </main>
+    </div>
 </div>
-</body>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const contentArea = document.querySelector('main .p-8');
+(() => {
+    const sidebar = document.getElementById('adminSidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    if (!sidebar || !toggle) return;
 
-    document.addEventListener('click', function(e) {
-        // Tìm thẻ <a> gần nhất
-        const link = e.target.closest('a');
-        if (!link) return;
-
-        const url = link.getAttribute('href');
-        
-        // Bỏ qua các link không cần AJAX (logout, xóa, link ngoài, hoặc nút không có href)
-        if (!url || url === '#' || url.startsWith('http') || url.includes('logout') || link.closest('form')) return;
-
-        e.preventDefault();
-
-        // Hiện hiệu ứng tải (tùy chọn)
-        contentArea.style.opacity = '0.5';
-
-        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newContent = doc.querySelector('main .p-8');
-
-                if (newContent) {
-                    // Nếu tìm thấy vùng nội dung mới, thay thế nó
-                    contentArea.innerHTML = newContent.innerHTML;
-                    window.history.pushState({path: url}, '', url);
-                    
-                    // Cuộn lên đầu trang
-                    window.scrollTo(0, 0);
-                } else {
-                    // Nếu không tìm thấy vùng content (LỖI LAYOUT), load lại trang truyền thống
-                    window.location.href = url;
-                }
-                contentArea.style.opacity = '1';
-            })
-            .catch(err => {
-                // Nếu Fetch lỗi (Server sập), load lại trang truyền thống để hiện lỗi PHP
-                window.location.href = url;
-            });
+    toggle.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
     });
-
-    // Xử lý nút Back của trình duyệt
-    window.addEventListener('popstate', function() {
-        location.reload();
-    });
-});
+})();
 </script>
+</body>
 </html>

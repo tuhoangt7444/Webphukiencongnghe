@@ -19,6 +19,16 @@ class Router
     {
         return $this->add('POST', $pattern, $handler);
     }
+
+    public function put(string $pattern, string $handler): RouteDef
+    {
+        return $this->add('PUT', $pattern, $handler);
+    }
+
+    public function delete(string $pattern, string $handler): RouteDef
+    {
+        return $this->add('DELETE', $pattern, $handler);
+    }
     #chuan hóa đường dẫn
     private function normalize(string $path): string
     {
@@ -57,6 +67,12 @@ class Router
         $method = $this->request->method();
         $path   = $this->request->path();
 
+        if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true) && !$this->verifyCsrfToken()) {
+            http_response_code(419);
+            echo '419 CSRF Token Mismatch';
+            return;
+        }
+
         $routes = $this->routes[$method] ?? [];
 
         foreach ($routes as $r) {
@@ -94,8 +110,58 @@ class Router
             return;
         }
 
+        // Không có route đúng method, kiểm tra path có tồn tại ở method khác không.
+        $allowed = $this->allowedMethodsForPath($path);
+        if ($allowed !== []) {
+            http_response_code(405);
+            header('Allow: ' . implode(', ', $allowed));
+            echo '405 Method Not Allowed';
+            return;
+        }
+
         http_response_code(404);
         echo "404 Not Found";
+    }
+
+    private function verifyCsrfToken(): bool
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $sessionToken = (string)($_SESSION['csrf_token'] ?? '');
+        if ($sessionToken === '') {
+            return false;
+        }
+
+        $token = trim((string)$this->request->input('csrf_token', ''));
+        if ($token === '') {
+            $headers = $this->request->headers();
+            $normalized = [];
+            foreach ($headers as $k => $v) {
+                $normalized[strtolower((string)$k)] = $v;
+            }
+
+            $token = trim((string)($normalized['x-csrf-token'] ?? $normalized['x-xsrf-token'] ?? ''));
+        }
+
+        return $token !== '' && hash_equals($sessionToken, $token);
+    }
+
+    private function allowedMethodsForPath(string $path): array
+    {
+        $allowed = [];
+        foreach ($this->routes as $method => $routes) {
+            foreach ($routes as $r) {
+                if (preg_match($r['regex'], $path)) {
+                    $allowed[] = $method;
+                    break;
+                }
+            }
+        }
+
+        sort($allowed);
+        return array_values(array_unique($allowed));
     }
     #gọi controller và action tương ứng
     private function invoke(string $handler, array $params): void

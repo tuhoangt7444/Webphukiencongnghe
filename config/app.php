@@ -1,4 +1,4 @@
 <?php
 return [
-  "app_name" => "Secondhand"
+  "app_name" => "Phukien"
 ];

@@ -1,170 +1,202 @@
-<?php
+﻿<?php
+use App\Core\View;
+
 $old = $_SESSION['old'] ?? [];
 $error = $_SESSION['error'] ?? null;
 unset($_SESSION['old'], $_SESSION['error']);
+$categories = $categories ?? [];
 ?>
 
-<div class="max-w-5xl mx-auto">
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Thêm sản phẩm</h5>
+    </div>
+    <div class="card-body">
+        <?php if ($error): ?>
+            <div class="alert alert-danger"><?= View::e((string)$error) ?></div>
+        <?php endif; ?>
 
-    <!-- ALERT -->
-    <?php if ($error): ?>
-        <div class="mb-6 rounded-xl bg-red-100 border border-red-300 text-red-700 px-5 py-4 flex items-center gap-3">
-            <span class="material-symbols-outlined">warning</span>
-            <div>
-                <strong>Lỗi:</strong> <?= $error ?>
+        <form action="/admin/products" method="POST" enctype="multipart/form-data" class="row g-3">
+            <div class="col-12">
+                <h6 class="mb-1">Thông tin cơ bản</h6>
+                <small class="text-muted">Tên, danh mục, thương hiệu, mô tả và hình ảnh</small>
             </div>
-        </div>
-    <?php endif; ?>
+            <div class="col-12 col-lg-8">
+                <label class="form-label">Tên sản phẩm *</label>
+                <input id="product_name" type="text" name="name" required class="form-control" value="<?= View::e((string)($old['name'] ?? '')) ?>">
+            </div>
+            <div class="col-12 col-lg-4">
+                <label class="form-label">Slug</label>
+                <input id="product_slug" type="text" name="slug" class="form-control" value="<?= View::e((string)($old['slug'] ?? '')) ?>">
+            </div>
 
-    <div class="bg-white dark:bg-[#161b28] rounded-2xl shadow-lg overflow-hidden">
+            <div class="col-12 col-md-6">
+                <label class="form-label">Danh mục</label>
+                <select name="category_id" class="form-select">
+                    <option value="">Chọn danh mục</option>
+                    <?php foreach ($categories as $cat): ?>
+                        <option value="<?= (int)$cat['id'] ?>" <?= ((string)($old['category_id'] ?? '') === (string)$cat['id']) ? 'selected' : '' ?>>
+                            <?= View::e((string)$cat['name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label">Thương hiệu</label>
+                <input type="text" name="brand_name" class="form-control" placeholder="Ví dụ: Logitech, Razer..." value="<?= View::e((string)($old['brand_name'] ?? '')) ?>">
+                <small class="text-muted">Bạn có thể nhập tay thương hiệu mới. Hệ thống sẽ tự tạo nếu chưa tồn tại.</small>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">SKU *</label>
+                <input type="text" name="sku" required class="form-control" value="<?= View::e((string)($old['sku'] ?? '')) ?>">
+            </div>
+            <div class="col-6 col-md-3" id="inventory">
+                <label class="form-label">Tồn kho</label>
+                <input type="number" min="0" name="stock" class="form-control" value="<?= (int)($old['stock'] ?? 0) ?>">
+            </div>
 
-        <!-- HEADER -->
-        <div class="px-6 py-4 bg-gradient-to-r from-primary to-blue-600 text-white">
-            <h2 class="text-lg font-bold flex items-center gap-2">
-                <span class="material-symbols-outlined">add_circle</span>
-                Thêm sản phẩm công nghệ mới
-            </h2>
-        </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label">Ảnh chính</label>
+                <input type="file" name="main_image" class="form-control" accept="image/*">
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label">Ảnh phụ (nhiều ảnh)</label>
+                <input type="file" name="gallery_images[]" multiple class="form-control" accept="image/*">
+            </div>
 
-        <!-- BODY -->
-        <div class="p-6">
-            <form action="/admin/products" method="POST" class="space-y-6">
+            <div class="col-12 mt-2">
+                <h6 class="mb-1">Giá bán</h6>
+                <small class="text-muted">Giá bán được tự động tính từ giá gốc + VAT + thuế nhập khẩu + lợi nhuận</small>
+            </div>
 
-                <!-- TÊN -->
-                <div>
-                    <label class="block mb-1 font-semibold">Tên sản phẩm *</label>
-                    <input type="text" name="name" id="product_name" required
-                        value="<?= \App\Core\View::e($old['name'] ?? '') ?>"
-                        placeholder="Ví dụ: Bàn phím cơ AKKO 3068"
-                        class="w-full rounded-lg border border-slate-300 dark:border-slate-700
-                               bg-white dark:bg-[#101622]
-                               px-4 py-3 focus:ring-2 focus:ring-primary">
+            <div class="col-6 col-md-3">
+                <label class="form-label">Giá gốc *</label>
+                <input id="cost_price" type="number" min="0" name="cost_price" required class="form-control" value="<?= (int)($old['cost_price'] ?? 0) ?>">
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">Thuế nhập khẩu (%)</label>
+                <input id="import_tax" type="number" min="0" max="100" step="0.01" name="import_tax_percent" class="form-control" value="<?= (float)($old['import_tax_percent'] ?? 0) ?>">
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">VAT (%)</label>
+                <input id="vat" type="number" min="0" max="100" step="0.01" name="vat_percent" class="form-control" value="<?= (float)($old['vat_percent'] ?? 0) ?>">
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">Lợi nhuận (%)</label>
+                <input id="profit" type="number" min="0" max="100" step="0.01" name="profit_percent" class="form-control" value="<?= (float)($old['profit_percent'] ?? 0) ?>">
+            </div>
+
+            <!-- Hiển thị giá bán tính toán -->
+            <div class="col-12 col-md-6">
+                <div class="alert alert-info">
+                    <p class="mb-2"><small class="text-muted">Công thức:</small></p>
+                    <p class="mb-2"><small>Giá bán = Giá gốc × (1 + Thuế nhập + VAT + Lợi nhuận)</small></p>
+                    <p class="mb-0">
+                        <strong>Giá bán cuối cùng:</strong><br>
+                        <span id="calculated_price" style="font-size: 1.5rem; color: #28a745; font-weight: bold;">0₫</span>
+                    </p>
                 </div>
+            </div>
 
-                <!-- SLUG + TRẠNG THÁI -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block mb-1 font-semibold">Slug</label>
-                        <input type="text" name="slug" id="product_slug"
-                            value="<?= \App\Core\View::e($old['slug'] ?? '') ?>"
-                            placeholder="ban-phim-co-akko-3068"
-                            class="w-full rounded-lg border border-slate-300 dark:border-slate-700
-                                   bg-white dark:bg-[#101622]
-                                   px-4 py-2 focus:ring-primary focus:ring-2">
-                        <p class="text-sm text-slate-400 mt-1">Để trống nếu muốn hệ thống tự tạo</p>
-                    </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">Bảo hành (tháng)</label>
+                <input type="number" min="0" name="warranty_months" class="form-control" value="<?= (int)($old['warranty_months'] ?? 0) ?>">
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label">Trạng thái</label>
+                <select name="is_active" class="form-select">
+                    <option value="1" <?= (($old['is_active'] ?? '1') === '1') ? 'selected' : '' ?>>Đang bán</option>
+                    <option value="0" <?= (($old['is_active'] ?? '') === '0') ? 'selected' : '' ?>>Tạm ẩn</option>
+                </select>
+            </div>
 
-                    <div>
-                        <label class="block mb-1 font-semibold">Trạng thái</label>
-                        <select name="is_active"
-                            class="w-full rounded-lg border border-slate-300 dark:border-slate-700
-                                   bg-white dark:bg-[#101622]
-                                   px-4 py-2 focus:ring-primary focus:ring-2">
-                            <option value="1" <?= ($old['is_active'] ?? '') == '1' ? 'selected' : '' ?>>Đang bán</option>
-                            <option value="0" <?= ($old['is_active'] ?? '') == '0' ? 'selected' : '' ?>>Tạm ẩn</option>
-                        </select>
-                    </div>
-                </div>
+            <div class="col-12">
+                <label class="form-label">Mô tả ngắn</label>
+                <textarea name="short_description" rows="2" class="form-control"><?= View::e((string)($old['short_description'] ?? '')) ?></textarea>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Mô tả chi tiết *</label>
+                <textarea name="description" rows="5" class="form-control" required><?= View::e((string)($old['description'] ?? '')) ?></textarea>
+            </div>
+            <div class="col-12 col-lg-6">
+                <label class="form-label">Điểm nổi bật</label>
+                <textarea name="highlights" rows="4" class="form-control"><?= View::e((string)($old['highlights'] ?? '')) ?></textarea>
+            </div>
+            <div class="col-12 col-lg-6">
+                <label class="form-label">Thông số kỹ thuật</label>
+                <textarea name="technical_specs" rows="6" class="form-control" placeholder="Danh mục # Tai nghe&#10;Tồn kho # 10&#10;Kết nối # Bluetooth 5.3&#10;Dung lượng pin # 40 giờ"><?= View::e((string)($old['technical_specs'] ?? '')) ?></textarea>
+                <small class="text-muted">Mỗi thông số trên 1 dòng, dùng dấu # để tách tên thông số và nội dung.</small>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Thông tin vận chuyển</label>
+                <textarea name="shipping_info" rows="3" class="form-control"><?= View::e((string)($old['shipping_info'] ?? '')) ?></textarea>
+            </div>
 
-                <!-- MÔ TẢ -->
-                <div>
-                    <label class="block mb-1 font-semibold">Mô tả chi tiết</label>
-                    <textarea name="description" rows="4"
-                        class="w-full rounded-lg border border-slate-300 dark:border-slate-700
-                               bg-white dark:bg-[#101622]
-                               px-4 py-2 focus:ring-primary focus:ring-2"
-                        placeholder="Thông số kỹ thuật, đặc điểm nổi bật..."><?= \App\Core\View::e($old['description'] ?? '') ?></textarea>
-                </div>
-
-                <!-- KHỐI GIÁ & KHO -->
-                <div class="rounded-xl border border-slate-200 dark:border-slate-700 p-5 bg-slate-50 dark:bg-[#101622]">
-                    <h3 class="mb-4 font-bold text-primary flex items-center gap-2">
-                        <span class="material-symbols-outlined">inventory</span>
-                        Giá & Kho hàng
-                    </h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                        <div>
-                            <label class="block mb-1 font-semibold">SKU</label>
-                            <input type="text" name="sku"
-                                value="<?= \App\Core\View::e($old['sku'] ?? '') ?>"
-                                placeholder="AKKO-3068-01"
-                                class="w-full rounded-lg border border-slate-300 dark:border-slate-700
-                                       bg-white dark:bg-[#101622]
-                                       px-4 py-2">
-                        </div>
-
-                        <div>
-                            <label class="block mb-1 font-semibold">Tồn kho</label>
-                            <input type="number" name="stock" min="0"
-                                value="<?= $old['stock'] ?? 0 ?>"
-                                class="w-full rounded-lg border border-slate-300 dark:border-slate-700
-                                       bg-white dark:bg-[#101622]
-                                       px-4 py-2">
-                        </div>
-
-                        <div>
-                            <label class="block mb-1 font-semibold text-green-600">Giá nhập (VNĐ)</label>
-                            <div class="flex">
-                                <input type="number" name="base_price" required
-                                    value="<?= $old['base_price'] ?? '' ?>"
-                                    placeholder="100000"
-                                    class="flex-1 rounded-l-lg border border-slate-300 dark:border-slate-700
-                                           bg-white dark:bg-[#101622]
-                                           px-4 py-2">
-                                <span class="rounded-r-lg bg-slate-200 dark:bg-slate-700 px-4 flex items-center">₫</span>
-                            </div>
-                            <p class="text-sm text-slate-400 mt-1">Hệ thống tự tính giá bán</p>
-                        </div>
-
-                        <div>
-                            <label class="block mb-1 font-semibold">Giá bán dự kiến</label>
-                            <input type="text" disabled
-                                value="Hệ thống tự tính..."
-                                class="w-full rounded-lg bg-slate-100 dark:bg-slate-800
-                                       text-slate-500 px-4 py-2">
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- ACTION -->
-                <div class="flex flex-col sm:flex-row justify-between gap-3 pt-4 border-t dark:border-slate-700">
-                    <a href="/admin/products"
-                       class="inline-flex items-center gap-2 px-5 py-2 rounded-lg
-                              bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white">
-                        ← Quay lại
-                    </a>
-
-                    <button type="submit"
-                        class="inline-flex items-center gap-2 px-6 py-2 rounded-lg
-                               bg-primary text-white font-semibold hover:opacity-90">
-                        💾 Lưu sản phẩm
-                    </button>
-                </div>
-
-            </form>
-        </div>
+            <div class="col-12 d-flex gap-2">
+                <a href="/admin/products" class="btn btn-outline-secondary">Quay lại</a>
+                <button type="submit" class="btn btn-primary">Lưu sản phẩm</button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- SCRIPT TẠO SLUG -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // Slug auto-generate
     const nameInput = document.getElementById('product_name');
     const slugInput = document.getElementById('product_slug');
+    if (nameInput && slugInput) {
+        nameInput.addEventListener('input', function () {
+            if (slugInput.value.trim() !== '') return;
+            const slug = this.value.toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[đĐ]/g, 'd')
+                .replace(/[^0-9a-z\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-+|-+$/g, '');
+            slugInput.value = slug;
+        });
+    }
 
-    nameInput.addEventListener('input', function() {
-        let slug = this.value.toLowerCase()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[đĐ]/g, 'd')
-            .replace(/[^0-9a-z\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .replace(/^-+|-+$/g, '');
+    // Real-time price calculation
+    const costPriceInput = document.getElementById('cost_price');
+    const importTaxInput = document.getElementById('import_tax');
+    const vatInput = document.getElementById('vat');
+    const profitInput = document.getElementById('profit');
+    const calculatedPriceDisplay = document.getElementById('calculated_price');
 
-        slugInput.value = slug;
-    });
+    function calculatePrice() {
+        const costPrice = parseFloat(costPriceInput.value) || 0;
+        const importTax = (parseFloat(importTaxInput.value) || 0) / 100;
+        const vat = (parseFloat(vatInput.value) || 0) / 100;
+        const profit = (parseFloat(profitInput.value) || 0) / 100;
+
+        if (costPrice <= 0) {
+            calculatedPriceDisplay.textContent = '0₫';
+            calculatedPriceDisplay.style.color = '#999';
+            return;
+        }
+
+        // Công thức: price = cost_price × (1 + import_tax + vat + profit)
+        const finalPrice = Math.round(costPrice * (1 + importTax + vat + profit));
+        const formatted = new Intl.NumberFormat('vi-VN', { 
+            style: 'currency', 
+            currency: 'VND',
+            maximumFractionDigits: 0
+        }).format(finalPrice);
+        
+        calculatedPriceDisplay.textContent = formatted;
+        calculatedPriceDisplay.style.color = '#28a745';
+    }
+
+    // Gọi tính toán khi các input thay đổi
+    if (costPriceInput) costPriceInput.addEventListener('input', calculatePrice);
+    if (importTaxInput) importTaxInput.addEventListener('input', calculatePrice);
+    if (vatInput) vatInput.addEventListener('input', calculatePrice);
+    if (profitInput) profitInput.addEventListener('input', calculatePrice);
+
+    // Tính giá lần đầu tiên
+    calculatePrice();
 });
 </script>

@@ -4,8 +4,20 @@ class Request
 {
     public function method(): string 
     {
-        #lấy phương thức của request
-        return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        #lấy phương thức của request (hỗ trợ override cho form)
+        $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+
+        if ($method === 'POST') {
+            $override = $_POST['_method'] ?? ($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? null);
+            if (is_string($override) && $override !== '') {
+                $candidate = strtoupper(trim($override));
+                if (in_array($candidate, ['PUT', 'PATCH', 'DELETE'], true)) {
+                    return $candidate;
+                }
+            }
+        }
+
+        return $method;
     }
     # lấy đường dẫn của request
     public function path(): string 
@@ -23,13 +35,39 @@ class Request
     # lấy dữ liệu từ bodu từ request
     public function body(): array
     {
-        return $_POST;
+        $method = $this->method();
+        if ($method === 'GET') {
+            return [];
+        }
+
+        $contentType = strtolower((string)($_SERVER['CONTENT_TYPE'] ?? ''));
+        // Check Content-Type FIRST to handle JSON
+        if (str_contains($contentType, 'application/json')) {
+            $raw = file_get_contents('php://input') ?: '';
+            $decoded = json_decode($raw, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        // Handle form-encoded POST data
+        if ($method === 'POST' && !empty($_POST)) {
+            return $_POST;
+        }
+
+        // Handle other methods or raw form-encoded data
+        $raw = file_get_contents('php://input') ?: '';
+
+        parse_str($raw, $parsed);
+        return is_array($parsed) ? $parsed : [];
     }
     #lấy giá trị của 1 tham số cụ thể từ request
     public function input(string $key, $default = null)
     {
         if (isset($_POST[$key])) {
             return $_POST[$key];
+        }
+        $body = $this->body();
+        if (isset($body[$key])) {
+            return $body[$key];
         }
         if (isset($_GET[$key])) {
             return $_GET[$key];

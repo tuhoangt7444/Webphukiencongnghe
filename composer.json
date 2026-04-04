@@ -5,5 +5,8 @@
       "App\\": "app/"
     }
   },
-  "require": {}
+  "require": {
+    "phpoffice/phpspreadsheet": "^5.5",
+    "phpmailer/phpmailer": "6.9"
+  }
 }
