@@ -1,5 +1,8 @@
 <?php
 namespace App\Core;
+
+use App\Services\SecurityLogger;
+
 class Router
 {
     private Request $request; #biến lưu trữ đối tượng Request
@@ -68,6 +71,10 @@ class Router
         $path   = $this->request->path();
 
         if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true) && !$this->verifyCsrfToken()) {
+            SecurityLogger::event('csrf_mismatch', [
+                'method' => $method,
+                'path' => $path,
+            ]);
             http_response_code(419);
             echo '419 CSRF Token Mismatch';
             return;

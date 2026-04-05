@@ -1,0 +1,818 @@
+BỘ GIÁO DỤC VÀ ĐÀO TẠO
+ĐẠI HỌC CẦN THƠ
+TRƯỜNG CÔNG NGHỆ THÔNG TIN & TRUYỀN THÔNG
+
+
+  
+
+
+NIÊN LUẬN NGÀNH
+NGÀNH CÔNG NGHỆ THÔNG TIN
+
+Đề tài
+
+Xây dựng hệ thống web bán phụ kiện công nghệ theo kiến trúc MVC và tích hợp chatbot tư vấn
+Design and Development of a Web-Based Technology Accessories Sales System Using MVC Architecture and Integrated Advisory Chatbot
+
+Sinh viên: Lê Hoàng Tú
+Mã số: B2306648
+Khóa: 49
+
+
+Cần Thơ, 4/2026 
+ 
+BỘ GIÁO DỤC VÀ ĐÀO TẠO 
+ĐẠI HỌC CẦN THƠ
+TRƯỜNG CÔNG NGHỆ THÔNG TIN & TRUYỀN THÔNG
+KHOA CÔNG NGHỆ THÔNG TIN
+
+
+
+NIÊN LUẬN NGÀNH
+NGÀNH CÔNG NGHỆ THÔNG TIN
+
+Đề tài
+
+Xây dựng hệ thống web bán phụ kiện công nghệ theo kiến trúc MVC và tích hợp chatbot tư vấn
+Design and Development of a Web-Based Technology Accessories Sales System Using MVC Architecture and Integrated Advisory Chatbot
+
+      Người hướng dẫn                                              Sinh viên thực hiện
+      TS. Lâm Nhựt Khang                                       Họ và tên: Lê Hoàng Tú
+      			                                                    Mã số: B2306648
+                                                                                   Khóa: 49
+
+
+Cần Thơ, 4/2026 
+	 
+LỜI CẢM ƠN
+Trước hết, em xin bày tỏ lòng biết ơn chân thành và sâu sắc đến cô Lâm Nhựt Khang, giảng viên đã tận tình hướng dẫn, định hướng và hỗ trợ em trong suốt quá trình thực hiện đề tài “Xây dựng hệ thống web bán phụ kiện công nghệ theo kiến trúc MVC và tích hợp chatbot tư vấn”. Cô đã dành nhiều thời gian góp ý, chỉnh sửa, giải đáp thắc mắc cũng như động viên em vượt qua những khó khăn trong quá trình thực hiện niên luận cơ sở. Sự tận tâm và nhiệt huyết của Cô là nguồn động lực to lớn giúp em có thể hoàn thành báo cáo này.
+Em xin chân thành cảm ơn Khoa Công nghệ Thông tin và Trường Công nghệ Thông tin & Truyền thông cùng toàn thể quý Thầy Cô trong khoa đã truyền đạt cho em những kiến thức nền tảng và chuyên ngành quý báu trong suốt quá trình học tập. Đây là hành trang quan trọng giúp em có đủ kiến thức và kỹ năng để triển khai, thiết kế và hoàn thiện hệ thống web theo đúng định hướng và yêu cầu của đề tài.
+Trong suốt quá trình học tập và thực hiện đề tài, em đã nhận được rất nhiều sự quan tâm, hỗ trợ và động viên từ quý Thầy Cô, gia đình và bạn bè.
+Em xin gửi lời cảm ơn chân thành đến gia đình – những người luôn là chỗ dựa tinh thần vững chắc, luôn tin tưởng, động viên và tạo điều kiện tốt nhất cho em trong học tập cũng như cuộc sống.
+Em cũng xin cảm ơn các anh/chị, bạn bè và các bạn cùng lớp đã luôn đồng hành, chia sẻ tài liệu, kinh nghiệm và hỗ trợ em trong quá trình nghiên cứu, phát triển và hoàn thiện hệ thống.
+Mặc dù đã rất cố gắng để hoàn thành niên luận một cách tốt nhất, nhưng do kiến thức và kinh nghiệm còn hạn chế, báo cáo khó tránh khỏi những thiếu sót. Em kính mong nhận được những ý kiến đóng góp quý báu của quý Thầy Cô để em có thể rút kinh nghiệm và hoàn thiện hơn trong tương lai.
+Xin chân thành cảm ơn!
+
+ 
+ 
+LỜI CAM ĐOAN
+Em tên Lê Hoàng Tú, mã số sinh viên B2306648, xin cam đoan các nội dung và kết quả nghiên cứu được trình bày trong niên luận cơ sở như sau:
+Các phần kết quả, số liệu, hình ảnh được trích dẫn từ các nghiên cứu, tài liệu của người khác chỉ nhằm mục đích so sánh, phân tích và đều được em ghi rõ nguồn trích dẫn trong phần tài liệu tham khảo hoặc chú thích dưới hình/bảng.
+Các kết quả nghiên cứu trình bày trong niên luận cơ sở này được hoàn thành dựa trên quá trình em trực tiếp tham gia thực hiện. Các kết quả này chưa từng được sử dụng để bảo vệ cho bất kỳ niên luận hoặc luận văn cùng cấp nào khác.
+Toàn bộ kết quả là trung thực, em không sao chép và không ngụy tạo dữ liệu hay kết quả nghiên cứu.
+Em xin hoàn toàn chịu trách nhiệm trước nhà trường và pháp luật về lời cam đoan này.
+Cần Thơ, ngày 10 tháng 4 năm 2026
+Người cam đoan
+
+
+                         Lê Hoàng Tú
+
+ 
+
+
+
+
+	
+ 
+TÓM TẮT
+Trong bối cảnh thương mại điện tử ngày càng phát triển, việc xây dựng các hệ thống web bán hàng trực tuyến không chỉ dừng lại ở việc cung cấp thông tin sản phẩm mà còn hướng đến việc tích hợp các chức năng thông minh nhằm nâng cao trải nghiệm người dùng và hiệu quả quản lý. Niên luận cơ sở này trình bày quá trình xây dựng hệ thống web bán phụ kiện công nghệ theo kiến trúc MVC và tích hợp chatbot tư vấn, với mục tiêu hỗ trợ người dùng trong việc tìm kiếm, lựa chọn sản phẩm và tăng cường khả năng tương tác trên nền tảng web.
+Trên cơ sở nghiên cứu các kiến thức về lập trình web, mô hình kiến trúc MVC (Model–View–Controller) và các phương pháp xây dựng chatbot, đề tài thiết kế và triển khai một hệ thống web bao gồm các chức năng quản trị và chức năng phía người dùng. Ở phía quản trị, hệ thống hỗ trợ quản lý sản phẩm, danh mục, người dùng và đơn hàng. Ở phía người dùng, hệ thống cung cấp các chức năng hiển thị danh sách sản phẩm, tìm kiếm, xem chi tiết sản phẩm và tương tác với chatbot tư vấn nhằm hỗ trợ giải đáp thắc mắc và gợi ý sản phẩm phù hợp.
+Hệ thống được phát triển bằng ngôn ngữ PHP theo mô hình MVC mini-framework, sử dụng cơ sở dữ liệu PostgreSQL để lưu trữ và quản lý dữ liệu. Kiến trúc hệ thống được tổ chức theo hướng tách biệt rõ ràng giữa các thành phần xử lý nghiệp vụ, giao diện hiển thị và điều hướng, góp phần nâng cao khả năng bảo trì, mở rộng và tái sử dụng mã nguồn. Chatbot tư vấn được tích hợp như một thành phần hỗ trợ, nhằm mô phỏng quy trình tư vấn bán hàng và cải thiện mức độ tương tác giữa người dùng và hệ thống.
+Kết quả thực nghiệm cho thấy hệ thống vận hành ổn định, đáp ứng các yêu cầu cơ bản của một website bán phụ kiện công nghệ trong môi trường thực tế. Việc tích hợp chatbot tư vấn góp phần nâng cao trải nghiệm người dùng và hỗ trợ hiệu quả trong quá trình tiếp cận thông tin sản phẩm. Các kết quả đạt được cho thấy tiềm năng của việc kết hợp kiến trúc MVC với các thành phần thông minh trong việc xây dựng các hệ thống web thương mại điện tử hiện đại.
+Từ khóa: website bán hàng, phụ kiện công nghệ, kiến trúc MVC, chatbot tư vấn, PHP, PostgreSQL, thương mại điện tử.
+
+ 
+
+
+
+	
+
+ 
+ABSTRACT
+In the context of the rapid growth of electronic commerce, the development of web-based sales systems has gone beyond providing basic product information to incorporating intelligent features that enhance user experience and management efficiency. This foundation thesis presents the design and development of a web-based technology accessories sales system using the MVC (Model–View–Controller) architecture and an integrated advisory chatbot, aiming to support users in searching for, selecting, and interacting with products on an online platform.
+Based on a study of web programming technologies, the MVC architectural model, and chatbot development approaches, the proposed system is designed and implemented with both administrative and user-oriented functionalities. On the administrative side, the system supports the management of products, categories, users, and orders. On the user side, it provides features for browsing product listings, searching, viewing product details, and interacting with an advisory chatbot to answer frequently asked questions and suggest suitable products.
+The system is developed using PHP within a mini-framework that follows the MVC pattern and employs PostgreSQL as the database management system. The system architecture clearly separates business logic, presentation, and routing components, which improves maintainability, scalability, and code reusability. The integrated chatbot serves as a supportive component that simulates the product advisory process and enhances the level of interaction between users and the system.
+Experimental results indicate that the system operates stably and meets the fundamental requirements of a technology accessories e-commerce website. The inclusion of the advisory chatbot contributes to improved user experience and more efficient access to product information. These results demonstrate the potential of combining the MVC architecture with intelligent components in the development of modern e-commerce web systems.
+Keywords: e-commerce website, technology accessories, MVC architecture, advisory chatbot, PHP, PostgreSQL, web application.
+ 
+MỤC LỤC
+LỜI CẢM ƠN	i
+LỜI CAM ĐOAN	iii
+TÓM TẮT	v
+ABSTRACT	vii
+MỤC LỤC	viii
+DANH MỤC HÌNH	x
+DANH MỤC BẢNG	xi
+DANH MỤC TỪ VIẾT TẮT	xii
+PHẦN GIỚI THIỆU	1
+1.	Đặt vấn đề	1
+2.	Các nghiên cứu liên quan	2
+3.	Mục tiêu đề tài	3
+4.	Đối tượng và phạm vi đề tài	3
+4.1. Đối tượng nghiên cứu	3
+4.2. Phạm vi đề tài	4
+5.	Phương pháp nghiên cứu	4
+6.	Nội dung nghiên cứu	5
+7.	Bố cục của niên luận ngành	6
+PHẦN NỘI DUNG	7
+CHƯƠNG 1. ĐẶC TẢ YÊU CẦU	7
+1.1 Mục tiêu của hệ thống	7
+1.2 Các vấn đề hệ thống cần giải quyết	7
+1.3 Phạm vi chức năng của hệ thống	8
+1.4 Yêu cầu chức năng	8
+1.4.2 Quản lý danh mục và sản phẩm	8
+1.4.3 Quản lý giỏ hàng và đặt hàng	8
+1.4.4 Thanh toán và vận chuyển	9
+1.4.5 Quản lý tồn kho và khuyến mãi	9
+1.4.6 Hỗ trợ khách hàng bằng chatbot AI	9
+1.5 Yêu cầu phi chức năng	9
+1.6 Dữ liệu và ràng buộc hệ thống	10
+1.7 Kết luận chương	10
+TÀI LIỆU THAM KHẢO	12
+
+
+
+
+
+
+
+
+
+
+DANH MỤC HÌNH
+
+ 
+DANH MỤC BẢNG
+
+
+
+ 
+DANH MỤC TỪ VIẾT TẮT
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+
+
+
+
+ 
+PHẦN GIỚI THIỆU
+1.	Đặt vấn đề
+	Trong những năm gần đây, sự phát triển mạnh mẽ của Internet và công nghệ thông tin đã thúc đẩy thương mại điện tử trở thành một trong những lĩnh vực quan trọng của nền kinh tế số. Các website bán hàng trực tuyến không chỉ đóng vai trò là kênh phân phối sản phẩm mà còn là nền tảng tương tác giữa doanh nghiệp và khách hàng, góp phần nâng cao hiệu quả kinh doanh và mở rộng phạm vi tiếp cận thị trường [1], [2].
+	Đối với lĩnh vực kinh doanh phụ kiện và linh kiện công nghệ, nhu cầu tìm kiếm thông tin sản phẩm, so sánh giá cả và nhận tư vấn trước khi mua hàng của người dùng ngày càng gia tăng. Tuy nhiên, nhiều hệ thống web bán hàng hiện nay vẫn được xây dựng theo hướng đơn khối, thiếu sự phân tách rõ ràng giữa các thành phần xử lý nghiệp vụ, giao diện và điều hướng, dẫn đến khó khăn trong việc bảo trì, mở rộng và nâng cấp hệ thống khi quy mô người dùng và dữ liệu tăng lên [3].
+	Mô hình kiến trúc MVC (Model–View–Controller) được đề xuất như một giải pháp hiệu quả để giải quyết các hạn chế trên. Kiến trúc này cho phép tách biệt dữ liệu, logic xử lý và giao diện hiển thị thành các thành phần độc lập, từ đó nâng cao tính linh hoạt, khả năng tái sử dụng mã nguồn và khả năng mở rộng của hệ thống web [4]. MVC đã được áp dụng rộng rãi trong nhiều framework và hệ thống web hiện đại, đặc biệt trong các ứng dụng thương mại điện tử có yêu cầu cao về quản lý dữ liệu và tương tác người dùng.
+	Bên cạnh đó, sự phát triển của trí tuệ nhân tạo và các kỹ thuật xử lý ngôn ngữ tự nhiên đã tạo điều kiện cho việc tích hợp chatbot vào các nền tảng web nhằm hỗ trợ tư vấn và chăm sóc khách hàng tự động. Chatbot có khả năng trả lời các câu hỏi thường gặp, hướng dẫn tìm kiếm sản phẩm và gợi ý lựa chọn phù hợp, từ đó góp phần nâng cao trải nghiệm người dùng và giảm tải cho bộ phận hỗ trợ trực tiếp [5], [6].
+	Xuất phát từ bối cảnh trên, niên luận này tập trung vào việc xây dựng một hệ thống web bán phụ kiện công nghệ theo kiến trúc MVC và tích hợp chatbot tư vấn, nhằm vừa đảm bảo tính chặt chẽ trong thiết kế phần mềm, vừa khai thác các thành phần thông minh để nâng cao mức độ tương tác và hỗ trợ người dùng trong quá trình mua sắm trực tuyến. Qua đó, hệ thống hướng tới việc tối ưu hóa quy trình bán hàng và nâng cao trải nghiệm thực tế cho khách hàng.
+2.	Các nghiên cứu liên quan
+	Trong lĩnh vực phát triển phần mềm và hệ thống web, kiến trúc MVC đã được đề xuất và áp dụng rộng rãi như một mô hình thiết kế chuẩn nhằm nâng cao chất lượng và khả năng bảo trì của hệ thống. Nghiên cứu của Leff và Rayfield đã chỉ ra rằng việc áp dụng mô hình MVC giúp tách biệt rõ ràng giữa dữ liệu, xử lý nghiệp vụ và giao diện người dùng, từ đó làm giảm sự phụ thuộc giữa các thành phần và hỗ trợ tốt hơn cho việc phát triển, mở rộng và bảo trì hệ thống trong dài hạn.
+	Trong bối cảnh thương mại điện tử, nhiều công trình nghiên cứu tập trung vào việc xây dựng các nền tảng bán hàng trực tuyến dựa trên kiến trúc phân lớp hoặc kiến trúc hướng dịch vụ nhằm đảm bảo khả năng mở rộng và hiệu năng của hệ thống. Theo Laudon và Traver, một hệ thống thương mại điện tử hiệu quả cần kết hợp chặt chẽ giữa các thành phần quản lý dữ liệu, xử lý giao dịch và giao diện tương tác với người dùng để tạo ra trải nghiệm mua sắm liền mạch và đáng tin cậy.
+	Về ứng dụng chatbot trong lĩnh vực hỗ trợ khách hàng, các nghiên cứu của Shawar và Atwell cho thấy chatbot có khả năng mô phỏng hội thoại tự nhiên và hỗ trợ người dùng trong việc truy vấn thông tin, đồng thời góp phần giảm tải cho bộ phận chăm sóc khách hàng truyền thống. Các nghiên cứu gần đây của Følstad và cộng sự cũng chỉ ra rằng mức độ tin cậy và chấp nhận của người dùng đối với chatbot trong dịch vụ khách hàng phụ thuộc lớn vào khả năng cung cấp thông tin chính xác, kịp thời và phù hợp với ngữ cảnh.
+	Ngoài ra, các tài liệu về kỹ nghệ phần mềm cũng nhấn mạnh vai trò của việc áp dụng các mô hình thiết kế và kiến trúc chuẩn trong việc xây dựng các hệ thống thông tin có độ tin cậy và khả năng thích ứng cao. Sommerville cho rằng việc lựa chọn kiến trúc phù hợp ngay từ giai đoạn thiết kế có ảnh hưởng trực tiếp đến chi phí bảo trì và khả năng mở rộng của hệ thống trong suốt vòng đời phần mềm.
+	Từ các nghiên cứu liên quan có thể nhận thấy rằng kiến trúc MVC và chatbot tư vấn đều là những hướng tiếp cận có cơ sở khoa học và thực tiễn rõ ràng trong lĩnh vực phát triển hệ thống web và thương mại điện tử. Tuy nhiên, việc kết hợp đồng thời hai hướng tiếp cận này trong một hệ thống web bán phụ kiện công nghệ hoàn chỉnh vẫn còn chưa được đề cập nhiều trong các công trình nghiên cứu ở phạm vi đào tạo đại học. Do đó, đề tài hướng đến việc xây dựng và đánh giá một mô hình tích hợp, vừa đảm bảo tính chặt chẽ về kiến trúc phần mềm, vừa năng cao trải nghiệm người dùng.  
+3.	Mục tiêu đề tài
+	Mục tiêu tổng quát của niên luận này là xây dựng và đánh giá một hệ thống web bán phụ kiện công nghệ theo kiến trúc MVC, có tích hợp chatbot tư vấn, nhằm tạo ra một nền tảng bán hàng trực tuyến có cấu trúc rõ ràng, dễ mở rộng và hỗ trợ hiệu quả cho người dùng trong quá trình tìm kiếm, lựa chọn sản phẩm.
+	Để đạt được điều này, đề tài tập trung vào việc thiết kế kiến trúc hệ thống theo mô hình MVC nhằm đảm bảo sự phân tách minh bạch giữa các thành phần dữ liệu, giao diện và xử lý điều khiển. Song song đó, hệ thống sẽ hoàn thiện các chức năng cơ bản của một website thương mại điện tử từ phía quản trị như quản lý sản phẩm, đơn hàng đến phía người dùng như tìm kiếm và xem chi tiết. Đặc biệt, việc tích hợp chatbot tư vấn sẽ đóng vai trò hỗ trợ tra cứu thông tin và gợi ý sản phẩm cá nhân hóa, trước khi tiến hành đánh giá khả năng vận hành và mức độ đáp ứng yêu cầu thông qua triển khai thử nghiệm cùng phân tích trải nghiệm người dùng.
+4.	Đối tượng và phạm vi đề tài
+4.1. Đối tượng nghiên cứu
+	Đối tượng nghiên cứu của đề tài bao gồm hệ thống web bán phụ kiện công nghệ, kiến trúc phần mềm áp dụng trong hệ thống và thành phần chatbot tư vấn được tích hợp nhằm hỗ trợ người dùng trong quá trình tương tác và lựa chọn sản phẩm.
+	Về mặt hệ thống, đối tượng nghiên cứu tập trung vào mô hình kiến trúc MVC (Model–View–Controller), trong đó thành phần Model chịu trách nhiệm quản lý và truy xuất dữ liệu từ cơ sở dữ liệu, thành phần View đảm nhiệm việc hiển thị giao diện và thông tin đến người dùng, và thành phần Controller thực hiện vai trò điều phối luồng xử lý giữa Model và View. Việc tổ chức các thành phần theo kiến trúc này được nghiên cứu nhằm đánh giá mức độ phù hợp trong việc xây dựng một website bán hàng trực tuyến có khả năng mở rộng và bảo trì.
+	Về dữ liệu, đối tượng nghiên cứu bao gồm các thông tin liên quan đến sản phẩm phụ kiện công nghệ như tên sản phẩm, mô tả, hình ảnh, giá bán, danh mục, tình trạng tồn kho, thông tin người dùng và thông tin đơn hàng. Các dữ liệu này được lưu trữ và quản lý trong hệ quản trị cơ sở dữ liệu PostgreSQL, phục vụ cho các chức năng truy vấn, cập nhật và thống kê trong hệ thống. Về mặt chức năng thông minh, đối tượng nghiên cứu còn bao gồm chatbot tư vấn, được thiết kế nhằm hỗ trợ người dùng trong việc tra cứu thông tin sản phẩm, giải đáp các câu hỏi thường gặp và đưa ra gợi ý lựa chọn phù hợp. Thành phần này được xem xét như một mô-đun hỗ trợ tương tác, kết hợp với các chức năng truyền thống của hệ thống web bán hàng.
+4.2. Phạm vi đề tài
+	Về mặt chức năng, hệ thống tập trung triển khai các chức năng cơ bản của một website bán phụ kiện công nghệ, bao gồm: hiển thị danh sách sản phẩm, tìm kiếm và xem chi tiết sản phẩm ở phía người dùng; quản lý sản phẩm, danh mục, người dùng và đơn hàng ở phía quản trị. Các chức năng nâng cao như tích hợp cổng thanh toán trực tuyến, quản lý vận chuyển thực tế, hoặc phân tích hành vi người dùng ở mức độ chuyên sâu không nằm trong phạm vi nghiên cứu của đề tài.
+	Về mặt kỹ thuật, đề tài tập trung vào việc áp dụng kiến trúc MVC trong môi trường phát triển web sử dụng ngôn ngữ PHP và hệ quản trị cơ sở dữ liệu PostgreSQL. Việc so sánh với các framework hoặc kiến trúc khác như microservices, serverless hoặc các nền tảng phát triển web hiện đại khác chỉ được đề cập ở mức độ tham khảo và không được triển khai thực nghiệm trong phạm vi niên luận.
+	Về chatbot tư vấn, phạm vi nghiên cứu chủ yếu tập trung vào việc xây dựng một chatbot ở mức cơ bản, có khả năng trả lời các câu hỏi thường gặp và gợi ý sản phẩm dựa trên các kịch bản và tập dữ liệu định sẵn. Các kỹ thuật xử lý ngôn ngữ tự nhiên nâng cao như học sâu hoặc huấn luyện mô hình ngôn ngữ lớn không được triển khai chi tiết trong khuôn khổ đề tài này.
+5.	Phương pháp nghiên cứu
+	Đề tài được thực hiện dựa trên sự kết hợp giữa phương pháp nghiên cứu lý thuyết và phương pháp thực nghiệm – triển khai hệ thống.
+	Về mặt lý thuyết, đề tài tiến hành khảo sát và tổng hợp các tài liệu liên quan đến kiến trúc phần mềm MVC, phát triển ứng dụng web, cơ sở dữ liệu quan hệ và các ứng dụng chatbot trong lĩnh vực thương mại điện tử. Các khái niệm về mô hình thiết kế phần mềm, nguyên lý tách lớp, quản lý dữ liệu và các phương pháp xây dựng hệ thống tương tác người dùng được phân tích nhằm hình thành cơ sở khoa học cho việc thiết kế và triển khai hệ thống.
+	Về mặt thực nghiệm, đề tài áp dụng phương pháp phát triển hệ thống theo quy trình tuần tự, bao gồm các bước chính: phân tích yêu cầu, thiết kế kiến trúc, thiết kế cơ sở dữ liệu, triển khai chức năng, kiểm thử và đánh giá. Ở giai đoạn phân tích yêu cầu, các chức năng của hệ thống được xác định dựa trên nhu cầu của người dùng và quản trị viên. Tiếp theo, kiến trúc MVC được thiết kế để phân tách rõ ràng các thành phần của hệ thống.
+	Trong giai đoạn triển khai, hệ thống được xây dựng bằng ngôn ngữ PHP theo mô hình MVC mini-framework, sử dụng PostgreSQL để lưu trữ dữ liệu. Các chức năng được kiểm thử thông qua việc tạo các kịch bản sử dụng (use case) và kiểm tra các luồng xử lý chính của hệ thống. Đối với chatbot tư vấn, các kịch bản hội thoại mẫu và tập câu hỏi – trả lời được xây dựng nhằm đánh giá khả năng hỗ trợ người dùng trong các tình huống phổ biến.
+	Cuối cùng, phương pháp đánh giá được thực hiện thông qua việc quan sát quá trình vận hành thử nghiệm của hệ thống, kiểm tra tính ổn định, tính đúng đắn của các chức năng và mức độ thuận tiện trong tương tác người dùng. Các kết quả thu được được tổng hợp và phân tích để rút ra nhận xét về ưu điểm và hạn chế của hệ thống trong phạm vi nghiên cứu.
+6.	Nội dung nghiên cứu
+	Nội dung nghiên cứu của niên luận ngành tập trung vào việc xây dựng và đánh giá một hệ thống web bán phụ kiện công nghệ theo kiến trúc MVC kết hợp với chatbot tư vấn.
+	Trước hết, niên luận trình bày các khái niệm và cơ sở lý thuyết liên quan đến phát triển hệ thống web, bao gồm mô hình kiến trúc MVC, nguyên lý thiết kế phần mềm hướng đối tượng và các phương pháp tổ chức cơ sở dữ liệu cho hệ thống thương mại điện tử. Trên cơ sở đó, cấu trúc tổng thể của hệ thống được thiết kế với sự phân tách rõ ràng giữa các thành phần Model, View và Controller.
+	Tiếp theo, niên luận mô tả quá trình thiết kế cơ sở dữ liệu, bao gồm việc xây dựng các bảng dữ liệu cho sản phẩm, danh mục, người dùng và đơn hàng, cùng với các mối quan hệ giữa chúng nhằm đảm bảo tính toàn vẹn và nhất quán của dữ liệu. Các chức năng chính của hệ thống được triển khai dựa trên các bảng dữ liệu này và được kiểm thử thông qua các kịch bản sử dụng cụ thể.
+	Bên cạnh đó, nội dung nghiên cứu còn tập trung vào việc thiết kế và tích hợp chatbot tư vấn như một mô-đun hỗ trợ tương tác. Các kịch bản hội thoại, tập câu hỏi – trả lời và cơ chế kết nối giữa chatbot với dữ liệu sản phẩm trong hệ thống được xây dựng nhằm đảm bảo chatbot có thể cung cấp thông tin phù hợp và kịp thời cho người dùng.
+	Cuối cùng, niên luận tiến hành đánh giá tổng thể hệ thống thông qua việc vận hành thử nghiệm, phân tích mức độ đáp ứng yêu cầu chức năng, tính ổn định và trải nghiệm người dùng. Các kết quả đánh giá được tổng hợp để làm cơ sở cho việc rút ra kết luận và đề xuất hướng phát triển trong các nghiên cứu tiếp theo.
+7.	Bố cục của niên luận ngành
+Chưa hoàn thành
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PHẦN NỘI DUNG
+CHƯƠNG 1. ĐẶC TẢ YÊU CẦU
+
+1.1 Mục tiêu của hệ thống
+	Hệ thống web bán phụ kiện công nghệ theo kiến trúc MVC tích hợp chatbot tư vấn AI được xây dựng nhằm giải quyết các hạn chế trong quá trình quản lý bán hàng trực tuyến, bao gồm việc tổ chức danh mục sản phẩm phức tạp, quản lý biến thể và tồn kho, xử lý đơn hàng nhiều trạng thái, cũng như hỗ trợ khách hàng trong quá trình tìm kiếm và lựa chọn sản phẩm.
+	Mục tiêu chính của hệ thống là cung cấp một nền tảng tập trung cho phép khách hàng thực hiện toàn bộ quy trình mua sắm trực tuyến từ tra cứu sản phẩm, đặt hàng, thanh toán đến theo dõi giao nhận, đồng thời hỗ trợ đội ngũ quản trị và nhân viên trong việc quản lý sản phẩm, người dùng, đơn hàng, kho và các hoạt động hậu mãi. Việc tích hợp chatbot tư vấn AI hướng đến việc cải thiện trải nghiệm người dùng thông qua khả năng hỗ trợ tức thời, giảm tải cho nhân viên chăm sóc khách hàng và tăng hiệu quả trong việc giới thiệu sản phẩm phù hợp với nhu cầu của khách hàng.
+1.1 Các vấn đề hệ thống cần giải quyết
+	Trong môi trường kinh doanh phụ kiện công nghệ, số lượng sản phẩm và biến thể thường lớn, bao gồm nhiều thương hiệu, dòng sản phẩm, cấu hình kỹ thuật và mức giá khác nhau. Việc quản lý thủ công hoặc bằng các công cụ rời rạc dễ dẫn đến sai lệch thông tin, khó kiểm soát tồn kho và chậm trễ trong xử lý đơn hàng. Bên cạnh đó, khách hàng thường gặp khó khăn trong việc tìm kiếm và so sánh các sản phẩm phù hợp với nhu cầu cá nhân, đặc biệt khi danh mục sản phẩm ngày càng mở rộng.
+	Hệ thống được thiết kế để khắc phục các vấn đề trên bằng cách chuẩn hóa dữ liệu sản phẩm, xây dựng quy trình xử lý đơn hàng có kiểm soát theo trạng thái, tích hợp cơ chế phân quyền người dùng rõ ràng và cung cấp kênh tư vấn tự động thông qua chatbot AI. Đồng thời, hệ thống hướng đến việc nâng cao tính minh bạch trong quản lý thông tin giao dịch, thanh toán và vận chuyển thông qua việc lưu trữ lịch sử trạng thái và nhật ký hoạt động.
+1.2 Phạm vi chức năng của hệ thống
+	Hệ thống bao phủ toàn bộ vòng đời của một giao dịch mua bán phụ kiện công nghệ trên nền tảng web. Ở phía người dùng, hệ thống hỗ trợ các hoạt động từ đăng ký, đăng nhập, tra cứu sản phẩm, lựa chọn biến thể, quản lý giỏ hàng, đặt hàng, thanh toán và theo dõi trạng thái giao nhận. Ngoài ra, người dùng có thể gửi yêu cầu hủy đơn, hoàn trả và nhận thông báo về các thay đổi liên quan đến đơn hàng.
+	Ở phía quản trị và vận hành, hệ thống cung cấp các chức năng quản lý danh mục, thương hiệu, dòng sản phẩm, sản phẩm, biến thể, thuộc tính kỹ thuật và hình ảnh. Hệ thống hỗ trợ quản lý tồn kho thông qua việc ghi nhận các biến động nhập, xuất, bán và điều chỉnh. Các chức năng quản lý đơn hàng bao gồm duyệt đơn, cập nhật trạng thái xử lý, xử lý yêu cầu hủy và hoàn trả, cũng như quản lý thanh toán và vận chuyển. Bên cạnh đó, hệ thống cho phép quản lý người dùng, phân quyền theo vai trò và theo dõi nhật ký hệ thống để phục vụ công tác kiểm tra và giám sát.
+1.3 Yêu cầu chức năng
+1.1.1 Quản lý tài khoản và phân quyền
+	Hệ thống cho phép người dùng tạo tài khoản và đăng nhập để sử dụng các chức năng cá nhân hóa. Mỗi tài khoản được gán một vai trò cụ thể, từ đó xác định tập quyền truy cập tương ứng. Quản trị viên có thể tạo, cập nhật, khóa hoặc thay đổi vai trò của người dùng, đồng thời theo dõi lịch sử thay đổi quyền nhằm đảm bảo tính minh bạch và an toàn trong vận hành hệ thống.
+1.3.1 Quản lý danh mục và sản phẩm
+	Hệ thống hỗ trợ tổ chức sản phẩm theo cấu trúc phân cấp gồm danh mục, thương hiệu và dòng sản phẩm. Đối với mỗi sản phẩm, hệ thống cho phép khai báo nhiều biến thể dựa trên các thuộc tính như màu sắc, dung lượng, kích thước hoặc các thông số kỹ thuật khác. Thông tin sản phẩm bao gồm mô tả, hình ảnh, giá bán, giá khuyến mãi và trạng thái hoạt động, được cập nhật tập trung để đảm bảo tính nhất quán khi hiển thị cho khách hàng.
+1.3.2 Quản lý giỏ hàng và đặt hàng
+	Hệ thống cho phép khách hàng thêm, cập nhật và xóa các biến thể sản phẩm trong giỏ hàng. Khi tiến hành đặt hàng, hệ thống ghi nhận thông tin giao nhận, phương thức thanh toán và tạo đơn hàng với trạng thái ban đầu. Các thay đổi về trạng thái đơn hàng trong suốt quá trình xử lý được lưu vết nhằm đảm bảo khả năng truy xuất và kiểm tra khi cần thiết.
+1.3.3 Thanh toán và vận chuyển
+	Hệ thống hỗ trợ nhiều phương thức thanh toán khác nhau, bao gồm thanh toán khi nhận hàng và chuyển khoản ngân hàng. Trạng thái thanh toán được cập nhật tương ứng với kết quả giao dịch. Về vận chuyển, hệ thống cho phép lựa chọn phương thức giao hàng, ghi nhận mã theo dõi và cập nhật các mốc trạng thái từ khi đóng gói đến khi giao thành công hoặc hoàn trả.
+1.3.4 Quản lý tồn kho và khuyến mãi
+	Hệ thống ghi nhận các biến động tồn kho tương ứng với các sự kiện như đặt hàng, hủy đơn, hoàn trả hoặc điều chỉnh thủ công. Các chương trình khuyến mãi có thể được thiết lập theo tỷ lệ giảm giá và áp dụng cho từng biến thể sản phẩm trong khoảng thời gian xác định, đảm bảo việc tính toán giá bán cuối cùng chính xác trong quá trình đặt hàng.
+1.3.5 Hỗ trợ khách hàng bằng chatbot AI
+	Hệ thống tích hợp chatbot AI để hỗ trợ khách hàng trong việc tra cứu thông tin sản phẩm, gợi ý lựa chọn phụ kiện phù hợp với nhu cầu và giải đáp các câu hỏi thường gặp về quy trình đặt hàng, thanh toán và vận chuyển. Chức năng này góp phần nâng cao trải nghiệm người dùng và giảm tải cho bộ phận chăm sóc khách hàng.
+1.4 Yêu cầu phi chức năng
+	Hệ thống được thiết kế với yêu cầu đảm bảo khả năng hoạt động ổn định, an toàn và dễ mở rộng. Giao diện người dùng cần trực quan, dễ sử dụng và tương thích với các trình duyệt phổ biến trên máy tính và thiết bị di động. Về hiệu năng, hệ thống phải đáp ứng các thao tác tìm kiếm, truy xuất sản phẩm và xử lý đơn hàng trong thời gian hợp lý ngay cả khi số lượng người dùng đồng thời tăng cao.
+	Về bảo mật, hệ thống áp dụng cơ chế xác thực và phân quyền theo vai trò, mã hóa mật khẩu và ghi nhận nhật ký hệ thống đối với các thao tác quan trọng như thay đổi quyền, duyệt đơn và xử lý thanh toán. Dữ liệu giao dịch và thông tin cá nhân của người dùng phải được lưu trữ và truyền tải một cách an toàn, hạn chế truy cập trái phép.
+	Về khả năng mở rộng và bảo trì, kiến trúc MVC giúp tách biệt rõ ràng giữa giao diện, xử lý nghiệp vụ và dữ liệu, tạo điều kiện thuận lợi cho việc nâng cấp, tích hợp thêm các chức năng mới như mở rộng chatbot AI, bổ sung phương thức thanh toán hoặc kết nối với các dịch vụ bên ngoài.
+1.5 Dữ liệu và ràng buộc hệ thống
+	Hệ thống sử dụng cơ sở dữ liệu quan hệ để lưu trữ và quản lý dữ liệu theo các nhóm chính bao gồm dữ liệu người dùng và phân quyền, dữ liệu sản phẩm và biến thể, dữ liệu giao dịch và thanh toán, dữ liệu vận chuyển và hoàn trả, cũng như dữ liệu nhật ký và thông báo. Các ràng buộc toàn vẹn được thiết lập thông qua khóa chính và khóa ngoại nhằm đảm bảo tính nhất quán giữa các bảng, ví dụ như mối quan hệ giữa người dùng và đơn hàng, giữa sản phẩm và biến thể, cũng như giữa đơn hàng và các bản ghi thanh toán, vận chuyển và hoàn tiền.
+	Hệ thống áp dụng các ràng buộc về miền giá trị cho các trạng thái đơn hàng, trạng thái thanh toán và trạng thái vận chuyển nhằm đảm bảo các giá trị được lưu trữ đúng theo các tập trạng thái đã định nghĩa. Ngoài ra, các ràng buộc về số lượng tồn kho, giá bán và tỷ lệ khuyến mãi được thiết lập để ngăn chặn các giá trị không hợp lệ trong quá trình xử lý nghiệp vụ.
+1.6 Kết luận chương
+	Chương này đã trình bày các yêu cầu và đặc tả chức năng của hệ thống web bán phụ kiện công nghệ tích hợp chatbot tư vấn AI, bao gồm các vấn đề hệ thống cần giải quyết, phạm vi chức năng, các yêu cầu chức năng và phi chức năng, cũng như các ràng buộc dữ liệu cơ bản. Các nội dung này là cơ sở để thực hiện việc thiết kế kiến trúc, mô hình dữ liệu và triển khai hệ thống trong các chương tiếp theo.
+
+
+
+
+CHƯƠNG 2. THIẾT KẾ GIẢI PHÁP
+2.1 Kiến trúc tổng thể của hệ thống
+	Hệ thống website bán phụ kiện công nghệ được xây dựng theo mô hình kiến trúc ba tầng (Three-tier Architecture) kết hợp với mô hình MVC nhằm đảm bảo tính phân tách rõ ràng giữa giao diện, xử lý nghiệp vụ và dữ liệu. Kiến trúc này giúp hệ thống dễ bảo trì, mở rộng và nâng cấp trong tương lai.
+ 
+Hình 2.1: Sơ đồ kiến trúc hệ thống web theo mô hình MVC tích hợp chatbot tư vấn
+2.2 Mô hình hóa chức năng hệ thống
+	Để làm rõ các yêu cầu nghiệp vụ và cách thức người dùng tương tác với hệ thống, đề tài tiến hành phân tích và mô hình hóa hệ thống thông qua các sơ đồ chức năng.
+2.2.1 Sơ đồ Use Case tổng quát
+	Sơ đồ Use Case tổng quát thể hiện ranh giới của hệ thống TECHGEAR và bức tranh toàn cảnh về các tác nhân tham gia. Hệ thống xác định 3 tác nhân chính: Khách vãng lai, Khách hàng và Quản trị viên.
+       Trong đó, Khách vãng lai có thể thực hiện các thao tác cơ bản như xem sản phẩm, đăng ký tài khoản, dùng Chatbox tư vấn. Tác nhân Khách hàng có mối quan hệ kế thừa (generalization) từ Khách vãng lai, nghĩa là ngoài các quyền cơ bản, Khách hàng có thêm các quyền đặc thù như quản lý giỏ hàng, đặt hàng, thanh toán và nhận voucher. Quản trị viên điều hành toàn bộ luồng dữ liệu ở phía sau hệ thống.
+ 
+Hình 2.2: Sơ đồ Usecase tổng quát của hệ thống
+2.2.2 Sơ đồ Use Case phân hệ Khách hàng và Khách vãng lai
+	Để làm rõ trải nghiệm mua sắm ở phía người dùng (Front-end), các chức năng của Khách hàng và Khách vãng lai được phân rã và gom nhóm thành 6 phân hệ (package) chính yếu:
+	Khám phá sản phẩm: Bao gồm các Use Case như Xem danh sách sản phẩm, Xem chi tiết sản phẩm và Xem bài blog.
+	Xác thực tài khoản: Quản lý vòng đời tài khoản từ Đăng nhập, Đăng ký, Đăng xuất đến Xem/Sửa hồ sơ và Gửi liên hệ hỗ trợ.
+	Quản lý giỏ hàng: Các tác vụ kiểm soát số lượng mua như Thêm sản phẩm, Xem giỏ hàng, Cập nhật số lượng, Xóa 1 hoặc Xóa toàn bộ.
+	Checkout và đơn hàng: Xử lý luồng thanh toán bao gồm Vào trang checkout, Xem preview giảm giá, Đặt hàng và Xem lịch sử đặt hàng.
+	Voucher và đánh giá: Các tính năng hậu mãi và khuyến mãi như Nhận voucher, Đánh giá sản phẩm và Xem lịch sử đánh giá.
+       Tư vấn chatbox: Bao gồm Dùng Chatbox tư vấn và Xem thông tin sản phẩm qua chatbox.
+ 
+Hình 2.3: Sơ đồ Usecase phân hệ Khách hang và Khách vãng lai
+2.2.3 Sơ đồ Use Case phân hệ Quản trị viên
+	Ở phía điều hành hệ thống (Back-end), các chức năng của tác nhân Quản trị viên được phân tách thành 5 nhóm module nghiệp vụ để dễ dàng kiểm soát và bảo trì:
+	Xác thực và thống kê: Quản lý đăng nhập/đăng xuất an toàn, Xem dashboard tổng quát và kết Xuất báo cáo tài chính Excel.
+	Quản lý hàng hóa và kho: Chịu trách nhiệm trực tiếp về vòng đời sản phẩm bao gồm Quản lý danh mục, Quản lý sản phẩm, Quản lý tồn kho & nhập kho, và Quản lý chiến dịch giảm giá.
+	Quản lý giao dịch & khách hàng: Xử lý các đơn đặt hàng (Quản lý đơn hàng) và quản trị hồ sơ người dùng (Quản lý khách hàng).
+	Marketing & nội dung: Vận hành các nội dung truyền thông bao gồm Quản lý bài viết, Quản lý banner và Quản lý voucher.
+	Tương tác khách hàng: Tiếp nhận và xử lý phản hồi thông qua Quản lý Newsletter, Quản lý liên hệ hỗ trợ và Quản lý đánh giá (ẩn/duyệt bình luận).
+ 
+Hình 2.4: Sơ đồ Usecase phân hệ Quản trị viên
+2.2.4 Đặc tả các Use Case chi tiết
+	Từ các phân hệ chức năng tổng quát ở trên, đề tài tiến hành bóc tách và đặc tả chi tiết luồng sự kiện cho từng Use Case và đặc tả các chức năng cụ thể.
+2.2.4.1	 Nhóm chức năng dành cho Khách hàng & Khách vãng lai
+2.2.4.1.1 Đặc tả Use case: UC-01 Đăng ký tài khoản
+ 
+Hình 2.5: Sơ đồ Usecase đăng ký tài khoản.
+Bảng 2.1: Đặt tả Usecase Đăng ký tài khoản
+Use Case Name: Đăng ký tài khoản	ID: UC-01	Priority: Cao
+Actor: Khách vãng lai
+Description: Khách vãng lai tạo tài khoản mới để trở thành khách hàng và sử dụng các dịch vụ mua sắm của TECHGEAR
+Trigger: Người dùng nhấn vào nút "Đăng ký" trên giao diện web.
+Type: External
+Precondition: 
+•	Người dùng chưa đăng nhập vào hệ thống.
+•	Yêu cầu có kết nối Internet.
+Normal Course:
+1.	Người dùng truy cập trang Đăng ký.
+2.	Người dùng nhập: Họ tên, Email, Số điện thoại, Mật khẩu, Xác nhận mật khẩu.
+3.	Người dùng nhấn nút "Đăng ký".
+4.	Hệ thống kiểm tra định dạng dữ liệu và kiểm tra Email đã tồn tại hay chưa.
+5.	Hệ thống tạo tài khoản mới với vai trò (role) là customer trong cơ sở dữ liệu (PostgreSQL).
+6.	Hệ thống tự động tạo phiên đăng nhập (session) cho người dùng.
+7.	Hệ thống chuyển hướng người dùng về Trang chủ với thông báo chào mừng.
+Post condition:
+•	Tài khoản khách hàng mới được tạo thành công.
+•	Người dùng ở trạng thái đã đăng nhập.
+Exceptions:
+       4a. Dữ liệu không hợp lệ (Mật khẩu ngắn, SĐT sai, Pass không khớp):
+       4a1. Hệ thống báo lỗi định dạng không hợp lệ.
+       4a2. Người dùng nhập lại thông tin.
+       4b. Email đã tồn tại trong hệ thống:
+       4b1. Hệ thống báo lỗi "Email đã tồn tại".
+       4b2. Hệ thống gợi ý người dùng chuyển sang trang Đăng nhập.
+       5a. Lỗi hệ thống cơ sở dữ liệu:
+       5a1. Hệ thống hiển thị thông báo "Tạo tài khoản thất bại, vui lòng thử lại sau".
+
+Summary
+Inputs	Source	Outputs	Destination
+Thông tin cá nhân (Họ tên, Email, SĐT, Mật khẩu)	Khách vãng lai	Thông báo thành công / Lỗi	Khách hàng / Khách vãng lai
+
+2.2.4.1.2 Đặc tả Use case: UC-02 Xem chi tiết sản phẩm 
+ 
+Hình 2.6: Sơ đồ Usecase xem chi tiết sản phẩm.
+Bảng 2.2: Đặt tả Usecase Xem chi tiết sản phẩm
+Use Case Name: Xem chi tiết sản phẩm	ID: UC-02	Priority: Cao
+Actor: Khách vãng lai, Khách hàng
+Description: Người dùng xem đầy đủ thông tin chi tiết, giá cả, số lượng tồn kho và các đánh giá của một sản phẩm công nghệ cụ thể để đưa ra quyết định mua hàng.
+Trigger: Người dùng nhấp vào một sản phẩm cụ thể từ danh sách sản phẩm hoặc từ kết quả tìm kiếm.
+Type: External
+Precondition: 
+•	Không bắt buộc đăng nhập.
+•	Sản phẩm được chọn phải tồn tại trong cơ sở dữ liệu và đang ở trạng thái hiển thị.
+Normal Course:
+       1. Hệ thống tiếp nhận yêu cầu xem sản phẩm.
+       2. Hệ thống tải thông tin chi tiết (Tên, hình ảnh, mô tả, thông số kỹ thuật, giá bán, tồn kho).
+       3. Hệ thống tải danh sách các "Sản phẩm liên quan" (cùng danh mục).
+       4. Hệ thống tải các bài đánh giá công khai của sản phẩm này.
+       5. Nếu người dùng đã đăng nhập, hệ thống kiểm tra xem người dùng có quyền viết đánh giá hay không (đã mua hàng chưa).
+      6. Hệ thống hiển thị toàn bộ dữ liệu lên giao diện Trang chi tiết sản phẩm
+Post condition:
+•	Người dùng nắm được thông tin chi tiết của sản phẩm để có thể thêm vào giỏ hàng.
+Exceptions:
+       2a. Sản phẩm không tồn tại hoặc đã bị xóa/ẩn: 
+       2a1. Hệ thống trả về trang lỗi 404 (Không tìm thấy trang).
+       2a2. Hệ thống gợi ý người dùng quay lại trang chủ hoặc xem các sản phẩm khác.
+Summary
+Inputs	Source	Outputs	Destination
+ID Sản phẩm	Người dùng	Giao diện chi tiết sản phẩm, Hình ảnh, Đánh giá	Người dùng
+2.2.4.1.3 Đặc tả Use case: UC-03 Dùng Chatbox tư vấn 
+ 
+Hình 2.7: Sơ đồ Usecase dùng Chatbox tư vấn
+Bảng 2.3: Đặt tả Usecase Dùng Chatbox tư vấn.
+Use Case Name: Dùng Chatbox tư vấn	ID: UC-03	Priority: Trung bình
+Actor: Khách vãng lai, Khách hàng
+Description: Người dùng nhận sự hỗ trợ từ Chatbox tư vấn tự động để tìm kiếm sản phẩm theo nhu cầu.
+Trigger: Người dùng gửi câu hỏi/yêu cầu vào khung Chatbox.
+Type: External
+Precondition:  
+•	Hệ thống Chatbox đang ở trạng thái hoạt động (Online). Không bắt buộc người dùng phải đăng nhập.
+Normal Course:
+       1. Người dùng mở khung Chatbox và nhập nhu cầu .
+       2. Hệ thống kiểm tra nội dung tin nhắn.                
+       3. Hệ thống phân tích ý định (intent) và ngân sách từ câu hỏi.                
+       4. Hệ thống truy xuất cơ sở dữ liệu và trả về câu trả lời kèm gợi ý sản phẩm phù hợp.                                 
+       5. Người dùng có thể yêu cầu xem chi tiết từng sản phẩm ngay trên khung chat 
+Post condition:  
+•	Người dùng nhận được danh sách sản phẩm gợi ý hoặc câu trả lời thỏa đáng.
+Exceptions:
+       2a. Câu hỏi rỗng hoặc chứa ký tự không hợp lệ:                
+       2a1. Hệ thống chặn gửi và yêu cầu người dùng nhập nội dung.                
+       4a. Không tìm thấy sản phẩm phù hợp:                
+       4a1. Chatbox trả lời xin lỗi và định hướng lại nhu cầu của người dùng sang danh mục khác. 
+Summary
+Inputs	Source	Outputs	Destination
+Nội dung câu hỏi / Yêu cầu	Người dùng	Câu trả lời Chatbox, Thẻ sản phẩm gợi ý	Người dùng
+2.2.4.1.4 Đặc tả Use case: UC-04 Thêm sản phẩm vào giỏ hàng 
+ 
+Hình 2.8: Sơ đồ Usecase thêm sản phảm vào giỏ hàng.
+Bảng 2.4: Đặt tả Usecase Thêm sản phẩm vào giỏ hàng
+Use Case Name: Thêm sản phẩm vào giỏ hàng	ID: UC-04	Priority: Cao
+Actor: Khách hàng
+Description: Khách hàng lưu sản phẩm công nghệ vào giỏ hàng cá nhân để chuẩn bị cho quá trình thanh toán.
+Trigger: Khách hàng nhấn nút "Thêm vào giỏ" trên trang danh sách hoặc trang chi tiết sản phẩm.
+Type: External
+Precondition:  
+•	Người dùng đã đăng nhập vào hệ thống. Sản phẩm tồn tại và số lượng tồn kho > 0.
+Normal Course:        
+       1. Hệ thống tiếp nhận yêu cầu "Thêm vào giỏ".        
+       2. Hệ thống kiểm tra trạng thái đăng nhập của người dùng.        
+       3. Hệ thống đọc số lượng yêu cầu và kiểm tra số lượng tồn kho thực tế trong CSDL.        
+       4. Hệ thống cập nhật dữ liệu vào phiên làm việc của giỏ hàng (session cart).        
+       5. Hệ thống trả về trạng thái "Thêm thành công" và cập nhật icon giỏ hàng trên giao diện.
+Post condition: 
+•	Giỏ hàng của khách hàng tăng số lượng sản phẩm hợp lệ.
+Exceptions:         
+       2a. Người dùng chưa đăng nhập:        
+       2a1. Hệ thống chuyển hướng sang trang Đăng nhập kèm theo URL quay lại (next URL).        
+       3a. Sản phẩm không tồn tại (Bị xóa khi đang xem):        
+       3a1. Báo lỗi "Sản phẩm không tồn tại" (not-found).        
+       3b. Hết hàng (Out of stock):        3b1. Hệ thống chặn thêm vào giỏ và báo lỗi "Sản phẩm đã hết hàng". 
+Summary
+Inputs	Source	Outputs	Destination
+ID Sản phẩm, Số lượng 	Khách hàng	Thông báo thành công, Dữ liệu giỏ hàng mới	Khách hàng
+2.2.4.1.5 Đặc tả Use case: UC-5 Đặt hàng 
+ 
+Hình 2.9: Sơ đồ Usecase đặt hàng.
+Bảng 2.5: Đặt tả Usecase Đặt hàng
+Use Case Name: Đặt hàng	ID: UC-5	Priority: Cao
+Actor: Khách hàng
+Description: Khách hàng xác nhận thông tin thanh toán và hoàn tất việc đặt mua các sản phẩm từ trang Checkout.
+Trigger: Người dùng nhấn nút "Đặt hàng" trên giao diện.
+Type: External
+Precondition:  
+•	Đã đăng nhập.
+•	Có sản phẩm checkout hợp lệ trong giỏ.
+•	Hồ sơ giao hàng hợp lệ (SĐT >= 9 số, địa chỉ đầy đủ).
+Normal Course:        
+       1. Hệ thống tiếp nhận yêu cầu thanh toán.
+       2. Hệ thống kiểm tra số điện thoại và địa chỉ giao hàng.
+       3. Hệ thống kiểm tra phương thức thanh toán (COD hoặc Chuyển khoản).
+       4. Hệ thống validate mã giảm giá (voucher/coupon) nếu có.
+       5. Hệ thống tạo đơn hàng và chi tiết đơn hàng .
+       6. Hệ thống tiến hành trừ số lượng tồn kho của sản phẩm.
+       7. Hệ thống đánh dấu voucher/coupon là đã sử dụng.
+       8. Hệ thống xóa các sản phẩm đã mua khỏi giỏ hàng hiện tại.
+       9. Hệ thống chuyển hướng người dùng sang "Trang đặt hàng thành công"
+
+Post condition:  
+•	Đơn hàng mới được tạo thành công ở trạng thái chờ duyệt
+Exceptions:         
+       2a. Thiếu địa chỉ/phone: Chuyển hướng người dùng sang trang cập nhật hồ sơ.
+       3a. Phương thức thanh toán không hợp lệ: Báo lỗi payment-invalid.
+       4a. Voucher không hợp lệ hoặc hết hạn: Báo lỗi voucher-invalid.
+       6a. Sản phẩm đã hết hàng (do mua trùng lúc): Báo lỗi out-of-stock và dừng tạo đơn.
+       5a. Lỗi tạo đơn trên Database: Báo lỗi order-failed.
+
+Summary
+Inputs	Source	Outputs	Destination
+Thông tin giao hàng, PT Thanh toán, Mã Voucher	Khách hàng	Mã đơn hàng, Trang thông báo thành công	Khách hàng
+2.2.4.1.6 Đặc tả Use case: UC-6 Nhận voucher 
+ 
+Hình 2.10: Sơ đồ Usecase nhận voucher.
+Bảng 2.6: Đặt tả Usecase Nhận voucher
+Use Case Name: Nhận voucher	ID: UC-6	Priority: Trung bình
+Actor: Khách hàng
+Description: Khách hàng lưu mã giảm giá (voucher) hợp lệ vào ví tài khoản cá nhân để sử dụng trong quá trình thanh toán sau này.
+Trigger: Người dùng nhấn nút "Nhận voucher" trên danh sách khuyến mãi.
+Type: External
+Precondition:  
+•	Đã đăng nhập.
+•	Voucher đang ở trạng thái active, còn thời hạn sử dụng và còn số lượng (tồn kho voucher > 0).
+Normal Course:        
+       1. Hệ thống tiếp nhận yêu cầu nhận voucher của khách hàng.
+       2. Hệ thống kiểm tra xem người dùng đã nhận (claim) mã voucher này trước đó chưa.
+       3. Hệ thống khóa dòng dữ liệu voucher (lock for update) để tránh lỗi đua tranh (hai người nhận cùng lúc).
+       4. Hệ thống tạo một bản ghi mới trong bảng user_vouchers liên kết giữa User và Voucher.
+       5. Hệ thống giảm số lượng (quantity) của voucher đi 1.
+       6. Hệ thống hiển thị thông báo "Đã lưu vào ví" và cập nhật trạng thái nút bấm.
+
+Post condition:  
+•	Voucher được lưu thành công vào tài khoản người dùng và sẵn sàng để áp dụng.
+Exceptions:         
+       1a. Người dùng chưa đăng nhập:
+       1a1. Hệ thống chặn thao tác và chuyển hướng người dùng sang trang Đăng nhập.
+       2a. Người dùng đã claim voucher này rồi:
+       2a1. Hệ thống báo lỗi already-claimed (Bạn đã nhận mã này rồi).
+       5a. Voucher vừa hết lượt/hết hạn ngay lúc click:
+       5a1. Hệ thống báo lỗi unavailable (Voucher đã hết số lượng hoặc hết hạn).
+
+Summary
+Inputs	Source	Outputs	Destination
+ID Voucher	Khách hàng	Thông báo thành công / Lỗi	Khách hàng
+2.2.4.1.7 Đặc tả Use case: UC-7 Xem lịch sử mua hàng 
+ 
+Hình 2.11: Sơ đồ Usecase xem lịch sử mua hàng.
+Bảng 2.7: Đặt tả Usecase Xem lịch sử mua hàng
+Use Case Name: Xem lịch sử mua hàng	ID: UC-07	Priority: Trung bình
+Actor: Khách hàng
+Description: Khách hàng truy cập vào danh sách các đơn hàng mình đã đặt để theo dõi tiến trình và quản lý chi tiêu.
+Trigger: Người dùng nhấn vào mục "Lịch sử đơn hàng" trong menu quản lý tài khoản cá nhân.
+Type: External
+Precondition:  
+•	Đã đăng nhập.
+Normal Course:        
+       1. Người dùng yêu cầu xem lịch sử đơn hàng.
+       2. Hệ thống truy vấn cơ sở dữ liệu (bảng orders) để lấy danh sách toàn bộ đơn hàng thuộc về user_id hiện tại.
+       3. Hệ thống sắp xếp đơn hàng theo thứ tự thời gian mới nhất lên đầu.
+       4. Hệ thống kiểm tra và đánh dấu các đơn hàng nào đã hoàn tất để hiển thị thêm nút "Đánh giá sản phẩm".
+       5. Hệ thống trả về giao diện danh sách đơn hàng (Mã đơn, Ngày đặt, Tổng tiền, Trạng thái cơ bản).
+       6. (Tùy chọn mở rộng) Người dùng bấm vào một mã đơn cụ thể để Xem chi tiết đơn hàng.
+
+Post condition:  
+•	Danh sách đơn hàng được hiển thị chính xác theo dữ liệu thực tế.
+Exceptions:         
+       2a. Người dùng chưa có đơn hàng nào:
+       2a1. Hệ thống hiển thị thông báo "Bạn chưa có đơn hàng nào" kèm theo một nút điều hướng "Tiếp tục mua sắm" để quay lại trang chủ.
+
+Summary
+Inputs	Source	Outputs	Destination
+User ID (Lấy từ Session)	Hệ thống	Giao diện Danh sách đơn hàng	Khách hàng
+2.2.4.1.8 Đặc tả Use case: UC-8 Đánh giá sản phẩm 
+ 
+Hình 2.12: Sơ đồ Usecase đánh giá sản phẩm.
+Bảng 2.8: Đặt tả Usecase Đánh giá sản phẩm
+Use Case Name: Đánh giá sản phẩm	ID: UC-08	Priority: Trung bình
+Actor: Khách hàng
+Description: Khách hàng để lại phản hồi (chấm điểm sao và viết nhận xét) cho các sản phẩm công nghệ đã mua, khi đơn hàng liên quan không thuộc trạng thái rejected hoặc cancelled.
+Trigger: Người dùng nhấn nút "Viết đánh giá" từ trang Chi tiết đơn hàng hoặc trang Lịch sử đơn hàng.
+Type: External
+Precondition:  
+•	Đã đăng nhập.
+•	Đã mua sản phẩm
+•	Trạng thái đơn hàng liên quan không thuộc rejected hoặc cancelled
+•	Chưa từng gửi đánh giá cho sản phẩm này trong đơn hàng này
+Normal Course:        
+       1. Người dùng mở form đánh giá sản phẩm.
+       2. Người dùng thực hiện chọn số sao (từ 1 đến 5).
+       3. Người dùng nhập nội dung bình luận chi tiết.
+       4. Người dùng nhấn "Gửi đánh giá".
+       5. Hệ thống kiểm tra lại tất cả các tiền điều kiện (quyền đánh giá).
+       6. Hệ thống lưu dữ liệu đánh giá (Rating, Comment, User_ID, Product_ID) vào CSDL.
+       7. Hệ thống cập nhật lại điểm đánh giá trung bình của sản phẩm đó.
+       8. Hệ thống hiển thị thông báo "Cảm ơn bạn đã đánh giá" và đóng form.
+
+Post condition:  
+•	Bài đánh giá được lưu lại và hiển thị công khai trên trang chi tiết sản phẩm.
+•	Nút "Đánh giá" của sản phẩm trong đơn hàng đó bị khóa/ẩn đi.
+Exceptions:         
+       5a. Không đủ điều kiện mua hàng hoặc đơn hàng bị hủy:
+       5a1. Hệ thống chặn thao tác và hiển thị lỗi not-eligible.
+       5b. Đã đánh giá trước đó (do lỗi giao diện chưa ẩn nút):
+       5b1. Hệ thống chặn thao tác và hiển thị lỗi already-reviewed.
+       2a/3a. Dữ liệu gửi lên bị thiếu (Chưa chấm sao hoặc để trống bình luận):
+       2a1. Hệ thống báo lỗi invalid yêu cầu điền đầy đủ thông tin.
+
+Summary
+Inputs	Source	Outputs	Destination
+Số sao (Rating), Nội dung bình luận	Khách hàng	Bài đánh giá công khai, Thông báo thành công	Hệ thống / Khách hàng
+
+2.2.4.2	 Nhóm chức năng dành cho Quản trị viên (Admin)
+2.2.4.2.1 Đặc tả Use case: UC-A01 Khóa hoặc mở tài khoản người dùng 
+ 
+Hình 2.13: Sơ đồ Usecase khóa hoặc mở tài khoản người dùng.
+Bảng 2.9: Đặt tả Usecase Khóa hoặc mở tài khoản người dùng
+Use Case Name: Khóa hoặc mở tài khoản người dùng	ID: UC-A01	Priority: Cao
+Actor: Quản trị viên
+Description: Admin thay đổi trạng thái hoạt động của một tài khoản khách hàng (Active / Inactive) để ngăn chặn khách hàng đó đăng nhập và mua hàng khi có dấu hiệu vi phạm chính sách.
+Trigger: Admin nhấn nút "Khóa/Mở khóa" trên giao diện danh sách hoặc trang chi tiết khách hàng.
+Type: External
+Precondition:  
+•	Admin đã đăng nhập.
+•	Tài khoản đích tồn tại.
+•	Admin không được phép tự khóa tài khoản của chính mình.
+Normal Course:        
+       1. Admin tìm kiếm và truy cập thông tin của khách hàng cần xử lý.
+       2. Admin nhấn nút "Khóa tài khoản" hoặc "Mở khóa".
+       3. Hệ thống hiển thị hộp thoại xác nhận hành động.
+       4. Admin xác nhận thao tác.
+       5. Hệ thống kiểm tra quyền hạn (đảm bảo không tự khóa mình).
+       6. Hệ thống cập nhật trạng thái User trong cơ sở dữ liệu.
+       7. Hệ thống hiển thị thông báo "Cập nhật thành công".
+
+Post condition:  
+•	Nếu bị khóa: Khách hàng đó lập tức bị đăng xuất và không thể đăng nhập lại.
+•	Mọi dữ liệu lịch sử mua hàng của người này vẫn được giữ nguyên vẹn.
+Exceptions:         
+       5a. Admin cố tình khóa tài khoản của chính mình:
+       5a1. Hệ thống chặn thao tác và báo lỗi "Bạn không thể tự khóa tài khoản của mình".
+Summary
+Inputs	Source	Outputs	Destination
+User ID cần xử lý	Admin	Thông báo thành công	Cơ sở dữ liệu
+
+2.2.4.2.2 Đặc tả Use case: UC-A02 Cập nhật trạng thái đơn hàng 
+ 
+Hình 2.14: Sơ đồ Usecase cập nhật trạng thái đơn hàng.
+Bảng 2.10: Đặt tả Usecase Cập nhật trạng thái đơn hàng
+Use Case Name: Cập nhật trạng thái đơn hàng	ID: UC-A02	Priority: Cao
+Actor: Quản trị viên
+Description: Quản trị viên thay đổi trạng thái tiến trình của một đơn hàng (Ví dụ: "Chờ xử lý" -> "Đang giao hàng") để khách hàng có thể theo dõi.
+Trigger: Admin nhấn nút cập nhật trạng thái trong màn hình Quản lý đơn hàng.
+Type: External
+Precondition:  
+•	Admin đã đăng nhập.
+•	Đơn hàng đang tồn tại và không ở trạng thái đã Hủy (Cancelled).
+Normal Course:        
+       1. Admin truy cập danh sách quản lý đơn hàng.
+       2. Admin chọn một đơn hàng cần xử lý.
+       3. Admin nhấn lưu thay đổi.
+       4. Hệ thống kiểm tra tính hợp lệ của việc chuyển đổi trạng thái.
+       5. Hệ thống cập nhật trạng thái mới vào cơ sở dữ liệu.
+       6. Hệ thống hiển thị thông báo "Cập nhật thành công".
+
+Post condition:  
+•	Đơn hàng có trạng thái mới, đồng bộ với giao diện Front-end của khách hàng.
+Exceptions:         
+       5a. Chuyển đổi trạng thái không hợp lệ (VD: Đã giao -> Chờ xử lý):
+       5a1. Hệ thống chặn thao tác và báo lỗi "Không thể chuyển ngược trạng thái đơn hàng".
+Summary
+Inputs	Source	Outputs	Destination
+ID Đơn hàng	Admin	Thông báo thành công	Cơ sở dữ liệu
+2.2.4.2.3 Đặc tả Use case: UC-A03 Nhập kho
+ 
+Hình 2.15: Sơ đồ Usecase nhập kho.
+Bảng 2.11: Đặt tả Usecase Nhập kho
+Use Case Name: Nhập kho	ID: UC-A03	Priority: Cao
+Actor: Quản trị viên
+Description: Quản trị viên thực hiện thao tác nhập thêm số lượng cho một hoặc nhiều sản phẩm vào kho hàng để hệ thống tiếp tục mở bán.
+Trigger: Admin nhấn nút "Nhập kho" trong màn hình Quản lý tồn kho.
+Type: External
+Precondition:  
+•	Admin đã đăng nhập.
+•	Sản phẩm cần nhập kho đã được tạo hồ sơ trước đó (Tồn tại trong bảng products).
+Normal Course:        
+       1. Admin tìm kiếm và chọn sản phẩm cần bổ sung số lượng.
+       2. Admin truy cập trang Quản lý tồn kho và chọn "Nhập thêm hàng".
+       3. Admin nhấn nút "Xác nhận nhập kho".
+       4. Hệ thống kiểm tra dữ liệu đầu vào (Ví dụ: Số lượng phải $> 0$).
+       5. Hệ thống cộng dồn số lượng mới vào trường tồn kho hiện tại của sản phẩm đó.
+       6. Hệ thống hiển thị thông báo "Nhập kho thành công" và làm mới giao diện kho.
+
+Post condition:  
+•	Số lượng tồn kho của sản phẩm tăng lên tương ứng.
+•	Lịch sử nhập kho được lưu lại an toàn để phục vụ truy xuất và đối soát sau này.
+Exceptions:         
+       5a. Số lượng nhập không hợp lệ ( $\le 0$ hoặc chứa ký tự chữ):
+       5a1. Hệ thống chặn thao tác, bôi đỏ ô nhập liệu và báo lỗi "Số lượng nhập phải lớn hơn 0".
+Summary
+Inputs	Source	Outputs	Destination
+Số lượng nhập	Admin	Cập nhật số tồn kho mới, Ghi log CSDL	Hệ thống / Database
+2.2.4.2.4 Đặc tả Use case: UC-A04 Ẩn hoặc hiện đánh giá 
+ 
+Hình 2.16: Sơ đồ Usecase ẩn hoặc hiện đánh giá.
+Bảng 2.12: Đặt tả Usecase Ẩn hoặc hiện đánh giá
+Use Case Name: Ẩn hoặc hiện đánh giá	ID: UC-A04	Priority: Trung bình
+Actor: Quản trị viên
+Description: Quản trị viên kiểm tra nội dung đánh giá của người mua và ẩn đi những bình luận chứa ngôn từ phản cảm, chửi thề, hoặc hình ảnh không phù hợp với tiêu chuẩn cộng đồng của website.
+Trigger: Admin nhấn nút "Ẩn/Duyệt" trên một dòng đánh giá tại màn hình Quản lý đánh giá.
+Type: External
+Precondition:  
+•	Admin đã đăng nhập.
+•	Bài đánh giá của người mua đã tồn tại trong cơ sở dữ liệu.
+Normal Course:        
+       1. Admin truy cập màn hình Quản lý đánh giá.
+       2. Admin phát hiện nội dung đánh giá vi phạm tiêu chuẩn (văng tục, quảng cáo đối thủ, ảnh sai sự thật).
+       3. Admin nhấn nút "Ẩn".
+       4. Hệ thống hiển thị popup xác nhận hành động.
+       5. Admin nhấn xác nhận.
+       6. Hệ thống cập nhật trạng thái hiển thị của bài đánh giá trong CSDL thành hidden.
+       7. Hệ thống báo "Cập nhật thành công" và bài đánh giá bị gỡ khỏi giao diện người dùng .
+
+Post condition:  
+•	Bài đánh giá vi phạm không còn hiển thị ở Trang chi tiết sản phẩm, nhưng vẫn lưu trong CSDL của Admin làm bằng chứng.
+Exceptions:         
+       5a. Lỗi kết nối CSDL khi đang cập nhật:
+       5a1. Hệ thống báo lỗi "Thao tác thất bại" và giữ nguyên trạng thái hiển thị.
+Summary
+Inputs	Source	Outputs	Destination
+ID Đánh giá, Lệnh Ẩn/Duyệt	Admin	Thông báo thành công, Trạng thái bị ẩn	CSDL / Giao diện Khách
+2.2.4.2.5 Đặc tả Use case: UC-A05 Xuất báo cáo tài chính Excel 
+ 
+Hình 2.17: Sơ đồ xuất báo cáo tài chính Excel.
+Bảng 2.13: Đặt tả Usecase Xuất báo cáo tài chính Excel
+Use Case Name: Xuất báo cáo tài chính Excel	ID: UC-A05	Priority: Cao
+Actor: Quản trị viên
+Description: Hệ thống kết xuất (export) toàn bộ dữ liệu thống kê doanh thu, lợi nhuận, và đơn hàng trong một khoảng thời gian nhất định ra định dạng file .xls để Admin lưu trữ và báo cáo.
+Trigger: Admin nhấn nút "Xuất Excel" trên giao diện Dashboard.
+Type: External
+Precondition:  
+•	Admin đã đăng nhập.
+•	Hệ thống có dữ liệu doanh thu trong khoảng thời gian được chọn.
+Normal Course:        
+       1. Ở giao diện Dashboard, Admin chọn mốc thời gian cần xuất báo cáo (VD: Tháng này, Quý 1).
+       2. Admin nhấn nút "Xuất Excel".
+       3. Hệ thống tổng hợp dữ liệu từ các bảng orders, order_items, products.
+       4. Hệ thống định dạng dữ liệu và khởi tạo file .xls.
+       5. Hệ thống gửi file về trình duyệt của Admin.
+       6. Admin tải file thành công về máy tính cá nhân.
+
+Post condition:  
+•	Admin nhận được một file Excel chứa dữ liệu báo cáo chuẩn xác.
+Exceptions:         
+       3a. Không có dữ liệu trong mốc thời gian đã chọn:
+       3a1. Hệ thống không tạo file và hiển thị cảnh báo "Không có dữ liệu báo cáo trong khoảng thời gian này".
+Summary
+Inputs	Source	Outputs	Destination
+Khoảng thời gian báo cáo, Lệnh xuất	Admin	File .xls báo cáo	Máy tính của Admin
+2.3 Sơ đồ luồng dữ liệu (DFD)
+       Sơ đồ luồng dữ liệu (Data Flow Diagram) mô tả cách thức dữ liệu di chuyển giữa các thực thể bên ngoài (Khách hàng, Quản trị viên, Hệ thống Chatbox tư vấn) và các tiến trình xử lý nội bộ của hệ thống, cũng như cách dữ liệu được lưu trữ vào các kho dữ liệu (Data Stores).
+2.3.1 Sơ đồ phân rã chức năng (BFD - Business Function Diagram) 
+	Cây phân rã chức năng giúp hệ thống hóa các nhóm nghiệp vụ chính thành các phân hệ chức năng nhỏ hơn (như Phân hệ người dùng, Phân hệ quản trị) để dễ dàng quản lý và theo dõi luồng thực thi. 
+Sơ đồ Cây phân rã chức năng (BFD) được đính kèm trong phần hình minh họa của báo cáo.
+2.3.2 Sơ đồ DFD mức 0 (Mức ngữ cảnh) 
+	Sơ đồ ngữ cảnh thể hiện hệ thống TECHGEAR như một tiến trình xử lý trung tâm duy nhất. Các thực thể bên ngoài giao tiếp với hệ thống bao gồm:
+	Khách hàng: Gửi thông tin đăng nhập, yêu cầu tìm kiếm, thông tin giỏ hàng, đặt hàng và nhận lại danh sách sản phẩm, hóa đơn, thông báo trạng thái.
+	Quản trị viên: Gửi thông tin cấu hình sản phẩm, duyệt đơn hàng, nhập kho và nhận lại các báo cáo thống kê, danh sách giao dịch.
+	Hệ thống Chatbox: Nhận dữ liệu đầu vào (câu hỏi của khách hàng) và trả về luồng phản hồi ngôn ngữ tự nhiên. 
+Sơ đồ DFD mức 0 (Mức ngữ cảnh) được đính kèm trong phần hình minh họa của báo cáo.
+2.4 Thiết kế Cơ sở dữ liệu
+	Cơ sở dữ liệu của hệ thống TECHGEAR được thiết kế và chuẩn hóa nhằm đảm bảo tính toàn vẹn dữ liệu, tối ưu hóa quá trình truy vấn và hỗ trợ tốt cho các nghiệp vụ phức tạp của thương mại điện tử như lưu vết giá trị đơn hàng (Snapshot Pricing) và quản lý kho.
+2.4.1 Sơ đồ Thực thể - Liên kết (ERD)
+	Sơ đồ ERD thể hiện các thực thể cốt lõi của hệ thống và xác định rõ các mối quan hệ (1-1, 1-n, n-n) giữa chúng.
+
+2.4.2 Mô hình dữ liệu mức Luận lý (Logical Data Model)
+	Từ sơ đồ ERD, hệ thống tiến hành chuyển đổi sang mô hình dữ liệu mức luận lý trong hệ quản trị cơ sở dữ liệu PostgreSQL. Dưới đây là cấu trúc chi tiết của các bảng dữ liệu cốt lõi giúp vận hành hệ thống:
+Các bảng dữ liệu được trình bày chi tiết trong phần phụ lục kỹ thuật để thuận tiện cho việc theo dõi thuộc tính và quan hệ.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CHƯƠNG 3. CÀI ĐẶT VÀ TRIỂN KHAI HỆ THỐNG
+3.1 Tổng quan kiến trúc triển khai
+       Hệ thống website bán phụ kiện công nghệ TECHGEAR được thiết kế và triển khai dựa trên mô hình kiến trúc MVC (Model – View – Controller) theo hướng tự xây dựng (Custom Mini-framework) bằng ngôn ngữ PHP. Việc không sử dụng các framework có sẵn giúp kiểm soát trực tiếp cấu trúc mã nguồn và luồng xử lý của ứng dụng, đồng thời phù hợp với mục tiêu nghiên cứu và triển khai một hệ thống có kiến trúc rõ ràng. Kiến trúc này cho phép phân tách giữa các thành phần xử lý dữ liệu, giao diện hiển thị và điều hướng logic nghiệp vụ. Nhờ đó, hệ thống thuận lợi hơn trong quá trình bảo trì, nâng cấp và mở rộng chức năng. Toàn bộ luồng xử lý được tổ chức theo nguyên tắc: yêu cầu từ người dùng được tiếp nhận bởi Controller, sau đó Controller làm việc với Model để lấy hoặc cập nhật dữ liệu, rồi trả kết quả về View để hiển thị.
+       Cấu trúc mã nguồn của đồ án được tổ chức theo hướng tách biệt hai phân hệ chính, gồm phân hệ khách hàng (Storefront) và phân hệ quản trị (Admin Dashboard). Mỗi phân hệ đều có đầy đủ ba thành phần Model, View và Controller, nhưng cùng sử dụng nền tảng Core và lớp truy cập dữ liệu dùng chung. Cách tổ chức này giúp giảm sự phụ thuộc giữa các phần chức năng, thuận tiện cho việc bảo trì, đồng thời tăng tính an toàn cho khu vực quản trị nhờ cơ chế kiểm soát truy cập riêng.
+ 
+Hình 3.1: Mô hình MVC cho phân hệ quản trị.
+ 
+Hình 3.2: Mô hình MVC cho phân hệ khách hàng.
+3.2 Công nghệ sử dụng
+	Hệ thống được phát triển dựa trên các công nghệ web phổ biến và phù hợp với bài toán thương mại điện tử. Phía máy chủ (Backend), ngôn ngữ lập trình cốt lõi là PHP, kết hợp cùng hệ quản trị cơ sở dữ liệu PostgreSQL nhằm đáp ứng nhu cầu lưu trữ và truy xuất dữ liệu giao dịch. Việc kết nối giữa PHP và PostgreSQL được thực hiện thông qua thư viện PDO (PHP Data Objects), sử dụng Prepared Statements để giảm thiểu rủi ro SQL Injection.
+       Ở phía giao diện người dùng (Frontend), hệ thống vận dụng bộ ba công nghệ nền tảng HTML5, CSS3 và JavaScript thuần để xây dựng các trang hiển thị. Kỹ thuật AJAX cũng được áp dụng để xử lý một số thao tác bất đồng bộ, giúp cải thiện trải nghiệm người dùng mà không cần tải lại toàn bộ trang web. Bên cạnh đó, dự án tích hợp thư viện PhpSpreadsheet nhằm phục vụ chức năng kết xuất báo cáo tài chính dưới định dạng Excel. Chức năng Chatbox tư vấn được xây dựng theo hướng phân tích ý định (intent-based) kết hợp tập luật (rule-based), đồng thời truy vấn dữ liệu sản phẩm trong hệ thống để tạo phản hồi theo ngữ cảnh.
+3.3 Cấu trúc hệ thống
+	Mã nguồn của hệ thống được tổ chức với cấu trúc thư mục rõ ràng, tuân thủ nguyên lý tách biệt trách nhiệm. Các lớp điều khiển (Controllers) được gom nhóm tại một khu vực riêng, chịu trách nhiệm tiếp nhận yêu cầu, kiểm tra tính hợp lệ của dữ liệu đầu vào và điều phối các tác vụ. Các lớp mô hình (Models) đóng vai trò tương tác trực tiếp với cơ sở dữ liệu, thực thi các truy vấn và bảo vệ tính toàn vẹn của logic nghiệp vụ định giá, tồn kho. Các tệp tin giao diện (Views) được chia thành các thư mục con tương ứng với từng phân hệ để dễ quản lý và bảo trì.
+       Ngoài ba thành phần cơ bản của MVC, hệ thống xây dựng thêm thư mục Core để chứa các thành phần nền tảng cốt lõi như bộ định tuyến (Router), lớp xử lý kết nối cơ sở dữ liệu, lớp xử lý request/response và lớp hỗ trợ tính toán giá sản phẩm. Thư mục Middlewares được khởi tạo để chứa các lớp trung gian làm nhiệm vụ kiểm tra xác thực, phân quyền người dùng và giới hạn số lần đăng nhập. Cuối cùng, các dịch vụ xử lý như gửi OTP, ghi log bảo mật và hỗ trợ tải lên an toàn được đóng gói trong thư mục Services.
+3.4 Cơ chế định tuyến
+	Hệ thống áp dụng cơ chế định tuyến (Routing) tự xây dựng, được khởi tạo và điều phối tại một điểm neo duy nhất là tệp tin khởi tạo chính. Khi người dùng gửi một yêu cầu truy cập, bộ định tuyến sẽ bắt lấy URL, phân tích cú pháp đường dẫn và chuyển hướng luồng thực thi đến đúng phương thức của Controller tương ứng để xử lý. Cách tiếp cận theo chuẩn Front Controller này giúp hệ thống chủ động trong việc kiểm soát luồng xử lý, dễ dàng áp dụng các bộ lọc bảo mật toàn cục và thuận tiện trong việc mở rộng thêm các tuyến đường mới.
+	Các tuyến đường trong hệ thống được phân vùng thành từng nhóm cụ thể nhằm tối ưu hóa việc quản lý. Nhóm tuyến đường truy cập công khai bao gồm trang chủ, danh sách sản phẩm và bài viết blog. Nhóm tuyến đường yêu cầu xác thực phục vụ các chức năng giỏ hàng, thanh toán và theo dõi đơn hàng. Riêng đối với nhóm tuyến đường thuộc khu vực quản trị, hệ thống áp dụng cơ chế middleware kiểm tra chặt chẽ để đảm bảo chỉ những người dùng được cấp quyền Admin mới có thể truy cập, từ đó ngăn chặn các rủi ro xâm nhập trái phép.
+3.5 Hệ thống xác thực và phân quyền
+       Để đảm bảo an toàn thông tin và mang lại sự thuận tiện cho người dùng, hệ thống cung cấp đa dạng phương thức xác thực. Khách hàng có thể đăng ký và đăng nhập bằng phương thức truyền thống thông qua tài khoản Email và mật khẩu đã được mã hóa một chiều. Đồng thời, nhằm hỗ trợ trải nghiệm đăng nhập nhanh, hệ thống cũng tích hợp phương thức đăng nhập bằng tài khoản Google thông qua giao thức OAuth 2.0. Trạng thái đăng nhập của người dùng được duy trì bằng cơ chế quản lý phiên làm việc (Session) và được làm mới sau các bước xác thực quan trọng.
+ 
+Hình 3.3: Giao diện trang đăng ký.
+ 
+Hình 3.4: Giao diện trang đăng nhập.
+       Bên cạnh xác thực danh tính, hệ thống triển khai cơ chế phân quyền dựa trên vai trò của người dùng (Role-Based Access Control). Thông qua các lớp bảo vệ Middleware, hệ thống sẽ kiểm tra vai trò của tài khoản mỗi khi có yêu cầu truy cập vào khu vực quản trị. Những người dùng chỉ mang vai trò khách hàng thông thường sẽ bị từ chối truy cập và điều hướng về trang phù hợp. Cách tiếp cận này giúp tăng cường tính bảo mật và kiểm soát phân quyền độc lập với logic xử lý của Controller.
+3.6 Các module chức năng chính
+       Hệ thống được thiết kế dưới dạng các module chức năng độc lập nhưng vẫn có khả năng tương tác chặt chẽ với nhau, tạo thành một hệ sinh thái thương mại điện tử hoàn chỉnh. Phân hệ đầu tiên là module quản lý sản phẩm và danh mục, cho phép tổ chức hàng hóa theo cấu trúc phân cấp, quản lý chi tiết các biến thể như màu sắc, dung lượng và hình ảnh minh họa. Tiếp đến là module giỏ hàng và thanh toán, chịu trách nhiệm lưu trữ phiên mua sắm tạm thời, tính toán tổng giá trị đơn hàng và thu thập thông tin giao nhận của khách hàng.
+       Đối với quy trình hậu mãi và vận hành, module quản lý đơn hàng kết hợp cùng module quản lý kho đóng vai trò theo dõi toàn bộ vòng đời của một giao dịch, tự động đối trừ số lượng hàng hóa và ghi nhận nhật ký xuất nhập kho. Ngoài ra, hệ thống còn vận hành các module tương tác khách hàng bao gồm đánh giá sản phẩm, blog, banner, newsletter, liên hệ hỗ trợ và Chatbox tư vấn. Tất cả các module này được liên kết thông suốt qua luồng cơ sở dữ liệu chung, mang lại trải nghiệm liền mạch cho cả người mua lẫn người quản trị.
+3.7 Cơ chế định giá sản phẩm
+	Nhằm giải quyết bài toán quản trị giá cả thủ công thường gặp nhiều sai sót, hệ thống đã cài đặt một cơ chế định giá sản phẩm hoàn toàn tự động và mang tính nhất quán cao. Quá trình tính toán giá bán cuối cùng được xây dựng dựa trên sự kết hợp của nhiều yếu tố cốt lõi bao gồm giá gốc nhập hàng, tỷ lệ thuế nhập khẩu, thuế giá trị gia tăng và biên độ lợi nhuận mà doanh nghiệp mong muốn đạt được.
+	Thông tin về các thành phần cấu tạo giá này được lưu trữ tách biệt trong cơ sở dữ liệu. Mỗi khi Quản trị viên tiến hành khởi tạo một sản phẩm mới hoặc cập nhật các hệ số thuế, hệ thống sẽ tự động thực thi công thức tính toán nội bộ để cho ra mức giá bán niêm yết cuối cùng. Cơ chế này không chỉ giúp giảm thiểu tối đa sai sót trong quá trình nhập liệu mà còn cung cấp cho doanh nghiệp khả năng điều chỉnh chiến lược giá một cách linh hoạt, đồng bộ theo từng thời điểm biến động của thị trường.
+ 
+Hình 3.5: Giao diện thêm hoặc sửa sản phẩm có phần Cost, Tax, Profit.
+3.8 Cơ chế lưu trữ giá tại thời điểm đặt hàng
+	Một trong những vấn đề rủi ro lớn của các hệ thống bán hàng trực tuyến là sự thay đổi giá sản phẩm trong tương lai sẽ làm sai lệch các báo cáo doanh thu của những đơn hàng trong quá khứ. Để giải quyết triệt để vấn đề này, hệ thống áp dụng kỹ thuật sao chụp dữ liệu giá tại thời điểm đặt hàng (Snapshot Pricing). Cụ thể, khi người dùng hoàn tất quá trình Checkout, toàn bộ cấu trúc giá của sản phẩm tại đúng thời điểm giao dịch đó sẽ được hệ thống sao chép và ghi đè vào bảng chi tiết đơn hàng.
+	Các thông tin được lưu trữ độc lập bao gồm giá gốc lúc mua, giá bán thực tế, các loại thuế và mức giảm giá đã áp dụng. Cơ chế này giúp hệ thống đóng băng và giữ nguyên giá trị lịch sử của đơn hàng, hoàn toàn miễn nhiễm với những thay đổi về giá sản phẩm trên hệ thống trong tương lai. Nhờ kỹ thuật này, công tác thống kê, xuất báo cáo tài chính và đối soát kế toán của quản trị viên trở nên chính xác tuyệt đối và đáng tin cậy hơn.
+3.9 Hệ thống khuyến mãi
+	Hệ thống phát triển một cơ chế khuyến mãi đa tầng nhằm kích thích nhu cầu mua sắm, hỗ trợ hai hình thức ưu đãi chính là Voucher. Khách hàng có thể chủ động thu thập các mã giảm giá công khai trên trang web và lưu trữ vào ví tài khoản cá nhân để sử dụng cho những lần thanh toán tiếp theo.
+	Trước khi hệ thống chấp nhận trừ tiền khuyến mãi vào tổng hóa đơn, một luồng kiểm tra tính hợp lệ nghiêm ngặt sẽ được thực thi. Hệ thống sẽ tự động truy vấn cơ sở dữ liệu để xác minh các điều kiện như trạng thái kích hoạt của mã, thời hạn sử dụng, số lượng lượt dùng còn lại và giá trị đơn hàng tối thiểu bắt buộc. Quy trình xác thực này giúp đảm bảo tính minh bạch của các chương trình khuyến mãi và phòng tránh các trường hợp trục lợi từ hệ thống.
+3.10 Chatbox tư vấn
+       Hệ thống tích hợp công cụ Chatbox tư vấn nhằm hỗ trợ người dùng trong quá trình tìm kiếm và lựa chọn sản phẩm phù hợp. Chatbox được lập trình để tiếp nhận nội dung câu hỏi đầu vào của người dùng, từ đó phân tích ý định và xác định nhu cầu mua sắm cốt lõi. Dựa trên kết quả phân tích, hệ thống truy xuất dữ liệu hàng hóa và đưa ra các thẻ gợi ý sản phẩm phù hợp theo ngữ cảnh hội thoại.
+       Về cơ chế xử lý, Chatbox vận hành theo phương pháp intent-based kết hợp rule-based, bao gồm tập luật nhận diện nhóm nhu cầu như khoảng giá, danh mục sản phẩm, chính sách bán hàng và tra cứu thông tin sản phẩm. Cách triển khai này giúp Chatbox phản hồi ổn định, nhất quán với dữ liệu nội bộ và phù hợp với phạm vi triển khai thực tế của hệ thống.
+3.11 Đánh giá
+	Sau quá trình thiết kế, lập trình và triển khai, hệ thống phần mềm đã hoàn thiện các thành phần chức năng chính theo mục tiêu đặt ra ban đầu. Việc tự xây dựng hệ thống trên nền tảng kiến trúc MVC cho thấy hiệu quả trong việc tổ chức mã nguồn, phân tách trách nhiệm và kiểm soát luồng xử lý.
+       Đặc biệt, việc ứng dụng cơ chế định giá sản phẩm tự động, lưu trữ giá tại thời điểm đặt hàng và giải pháp Chatbox tư vấn theo intent/rule-based giúp hệ thống đáp ứng tốt hơn các yêu cầu của một website bán phụ kiện công nghệ. Các kết quả bước đầu cho thấy hệ thống vận hành ổn định, luồng dữ liệu được tổ chức hợp lý và có thể tiếp tục phát triển ở các chương sau.
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TÀI LIỆU THAM KHẢO   
+[1]	Laudon, K. C., Traver, C. G.: E-Commerce: Business, Technology, Society. Pearson Education, 15th Edition (2019).
+[2]	Turban, E., Outland, J., King, D., Lee, J. K., Liang, T. P., Turban, D. C.: Electronic Commerce 2018: A Managerial and Social Networks Perspective. Springer (2018).                                                                              https://doi.org/10.1007/978-3-319-58715-8
+[3]	Sommerville, I.: Software Engineering. Pearson Education, 10th Edition (2016).
+[4]	Leff, A., Rayfield, J. T.: “Web-Application Development Using the Model/View/Controller Design Pattern.” IEEE Enterprise Distributed Object Computing Conference (EDOC), pp. 118–127 (2001).
+https://doi.org/10.1109/EDOC.2001.950428
+[5]	Shawar, B. A., Atwell, E.: “Chatbots: Are They Really Useful?” LDV Forum, vol. 22, no. 1, pp. 29–49 (2007).
+[6]	Følstad, A., Nordheim, C. B., Bjørkli, C. A.: “What Makes Users Trust a Chatbot for Customer Service? An Exploratory Interview Study.” International Conference on Internet Science, pp. 194–208 (2018).
+https://doi.org/10.1007/978-3-030-01437-7_16
+

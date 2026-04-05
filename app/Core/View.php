@@ -5,7 +5,26 @@ namespace App\Core;
     # Hàm escape để tránh XSS
     public static function e(?string $value): string 
     {
-        return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
+        return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    public static function eAttr(?string $value): string
+    {
+        return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    public static function eUrl(?string $value): string
+    {
+        $raw = trim((string)$value);
+        if ($raw === '') {
+            return '';
+        }
+
+        if (preg_match('/^\s*javascript:/i', $raw)) {
+            return '';
+        }
+
+        return htmlspecialchars($raw, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
     
     public static function render(string $view, array $data = [], string $layout = 'layouts/main'): void

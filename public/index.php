@@ -32,13 +32,16 @@ if (is_file($envFile) && is_readable($envFile)) {
 	}
 }
 
-if (session_status() === PHP_SESSION_NONE) {
-	session_start();
-}
+use App\Core\Security\SecureSession;
+use App\Core\Security\SecurityHeaders;
 
 use App\Core\Request;
 use App\Core\Router;
 use App\Middlewares\AdminMiddleware;
+use App\Middlewares\LoginRateLimitMiddleware;
+
+SecureSession::start();
+SecurityHeaders::apply();
 
 $request = new Request();
 $router = new Router($request);
@@ -51,7 +54,8 @@ $router->post('/contact', 'ContactController@store');
 $router->post('/newsletter/subscribe', 'NewsletterController@subscribe');
 $router->post('/vouchers/claim', 'VoucherController@claim');
 $router->get('/login', 'AuthController@showLogin');
-$router->post('/login', 'AuthController@login');
+$route = $router->post('/login', 'AuthController@login');
+$route->middleware([LoginRateLimitMiddleware::class]);
 $router->get('/forgot-password', 'AuthController@showForgotPassword');
 $router->post('/forgot-password/send', 'AuthController@sendForgotPasswordOtp');
 $router->get('/forgot-password/verify', 'AuthController@showResetPassword');

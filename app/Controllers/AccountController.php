@@ -5,6 +5,8 @@ use App\Core\Controller;
 use App\Models\Order;
 use App\Models\Review;
 use App\Models\User;
+use App\Services\SafeUploadService;
+use App\Services\SecurityLogger;
 
 class AccountController extends Controller
 {
@@ -65,63 +67,36 @@ class AccountController extends Controller
         }
 
         if (!isset($_FILES['avatar']) || !is_array($_FILES['avatar'])) {
+            SecurityLogger::event('avatar_upload_rejected', ['reason' => 'file-missing']);
             $this->response->redirect('/account/edit?status=avatar-empty');
             return;
         }
 
-        $avatar = $_FILES['avatar'];
-        $errorCode = (int)($avatar['error'] ?? UPLOAD_ERR_NO_FILE);
-        if ($errorCode !== UPLOAD_ERR_OK) {
-            $this->response->redirect('/account/edit?status=avatar-invalid');
-            return;
-        }
-
-        $tmpPath = (string)($avatar['tmp_name'] ?? '');
-        if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
-            $this->response->redirect('/account/edit?status=avatar-invalid');
-            return;
-        }
-
-        $fileSize = (int)($avatar['size'] ?? 0);
-        if ($fileSize <= 0 || $fileSize > 2 * 1024 * 1024) {
-            $this->response->redirect('/account/edit?status=avatar-too-large');
-            return;
-        }
-
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = $finfo ? (string)finfo_file($finfo, $tmpPath) : '';
-        if ($finfo) {
-            finfo_close($finfo);
-        }
-
-        $allowed = [
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/webp' => 'webp',
-            'image/gif' => 'gif',
-        ];
-
-        if (!isset($allowed[$mime])) {
-            $this->response->redirect('/account/edit?status=avatar-invalid');
-            return;
-        }
-
         $uploadDir = dirname(__DIR__, 2) . '/public/uploads/avatars';
-        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-            $this->response->redirect('/account/edit?status=avatar-failed');
+        $uploadResult = SafeUploadService::uploadImage($_FILES['avatar'], $uploadDir, 2 * 1024 * 1024);
+        if (($uploadResult['ok'] ?? false) !== true) {
+            $reason = (string)($uploadResult['error'] ?? 'upload-failed');
+            SecurityLogger::event('avatar_upload_rejected', [
+                'reason' => $reason,
+                'user_id' => (int)($_SESSION['user_id'] ?? 0),
+            ]);
+
+            if ($reason === 'size-invalid') {
+                $this->response->redirect('/account/edit?status=avatar-too-large');
+                return;
+            }
+
+            $this->response->redirect('/account/edit?status=avatar-invalid');
             return;
         }
 
         $userId = (int)$_SESSION['user_id'];
-        try {
-            $token = bin2hex(random_bytes(8));
-        } catch (\Throwable $e) {
-            $token = uniqid('ava', true);
-        }
-        $fileName = sprintf('user_%d_%s.%s', $userId, $token, $allowed[$mime]);
-        $destination = $uploadDir . DIRECTORY_SEPARATOR . $fileName;
-
-        if (!move_uploaded_file($tmpPath, $destination)) {
+        $fileName = (string)($uploadResult['filename'] ?? '');
+        if ($fileName === '') {
+            SecurityLogger::event('avatar_upload_rejected', [
+                'reason' => 'filename-empty',
+                'user_id' => $userId,
+            ]);
             $this->response->redirect('/account/edit?status=avatar-failed');
             return;
         }
@@ -133,6 +108,10 @@ class AccountController extends Controller
             $_SESSION['user_avatar'] = $avatarUrl;
             $this->response->redirect('/account/edit?status=avatar-updated');
         } catch (\Throwable $e) {
+            SecurityLogger::event('avatar_upload_rejected', [
+                'reason' => 'db-update-failed',
+                'user_id' => $userId,
+            ]);
             $this->response->redirect('/account/edit?status=avatar-failed');
         }
     }

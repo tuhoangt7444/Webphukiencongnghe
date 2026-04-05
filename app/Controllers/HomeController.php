@@ -80,21 +80,6 @@ class HomeController extends Controller
         ]);
     }
 
-    public function contactSubmit(): void
-    {
-        $name = trim((string)$this->request->input('name', ''));
-        $email = trim((string)$this->request->input('email', ''));
-        $message = trim((string)$this->request->input('message', ''));
-
-        if ($name === '' || $message === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->response->redirect('/contact?status=invalid');
-            return;
-        }
-
-        // TODO: lưu DB hoặc gửi email ở bước tiếp theo.
-        $this->response->redirect('/contact?status=sent');
-    }
-
     public function ping(): void
     {
         $this->response->json([

@@ -2,9 +2,11 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Security\SecureSession;
 use App\Models\PasswordResetOtp;
 use App\Models\User;
 use App\Services\OtpMailService;
+use App\Services\SecurityLogger;
 
 class AuthController extends Controller
 {
@@ -41,11 +43,19 @@ class AuthController extends Controller
 
         $user = User::findByLogin($login);
         if (!$user || !password_verify($password, (string)$user['password_hash'])) {
+            SecurityLogger::event('login_failed', [
+                'login' => $login,
+                'reason' => 'invalid-credentials',
+            ]);
             $this->response->redirect('/login?status=failed');
             return;
         }
 
         if (($user['status'] ?? 'active') !== 'active') {
+            SecurityLogger::event('login_blocked', [
+                'login' => $login,
+                'reason' => 'locked-account',
+            ]);
             $this->response->redirect('/login?status=locked');
             return;
         }
@@ -111,6 +121,9 @@ class AuthController extends Controller
         unset($_SESSION['google_oauth_state']);
 
         if ($state === '' || $savedState === '' || !hash_equals($savedState, $state)) {
+            SecurityLogger::event('oauth_state_invalid', [
+                'provider' => 'google',
+            ]);
             $this->response->redirect('/login?status=google-state-invalid');
             return;
         }
@@ -411,6 +424,8 @@ class AuthController extends Controller
             'phone' => $phone,
         ]);
 
+        SecureSession::regenerateOnLogin();
+
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_email'] = $email;
         $_SESSION['user_role_code'] = 'customer';
@@ -427,29 +442,17 @@ class AuthController extends Controller
     {
         $this->ensureSession();
 
-        $_SESSION = [];
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            setcookie(
-                session_name(),
-                '',
-                time() - 42000,
-                $params['path'],
-                $params['domain'],
-                (bool)$params['secure'],
-                (bool)$params['httponly']
-            );
-        }
-        session_destroy();
+        SecurityLogger::event('logout', [
+            'user_id' => (int)($_SESSION['user_id'] ?? 0),
+        ]);
+        SecureSession::destroy();
 
         $this->response->redirect('/login?status=logout');
     }
 
     private function ensureSession(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        SecureSession::start();
     }
 
     private function isLoggedIn(): bool
@@ -460,6 +463,8 @@ class AuthController extends Controller
 
     private function loginUser(array $user): void
     {
+        SecureSession::regenerateOnLogin();
+
         $_SESSION['user_id'] = (int)$user['id'];
         $_SESSION['user_email'] = (string)$user['email'];
         $_SESSION['user'] = [

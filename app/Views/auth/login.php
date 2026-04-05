@@ -55,6 +55,8 @@ $next = (string)($next ?? '');
                                     <div class="alert alert-warning" role="alert">Tài khoản Google chưa cung cấp email hợp lệ.</div>
                                 <?php elseif ($status === 'google-failed'): ?>
                                     <div class="alert alert-danger" role="alert">Đăng nhập Google thất bại, vui lòng thử lại sau.</div>
+                                <?php elseif ($status === 'login-rate-limited'): ?>
+                                    <div class="alert alert-danger" role="alert">Bạn đã đăng nhập sai quá nhiều lần. Vui lòng đợi một lát rồi thử lại.</div>
                                 <?php elseif ($status === 'password-reset-success'): ?>
                                     <div class="alert alert-success" role="alert">Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.</div>
                                 <?php endif; ?>
