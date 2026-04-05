@@ -35,6 +35,125 @@
         return escapeHtml(text).replace(/\n/g, '<br>');
     }
 
+    function renderMessageContent(el, text, html) {
+        const normalized = String(text || '').trim();
+        if (html === true) {
+            el.innerHTML = normalized;
+            return;
+        }
+
+        el.innerHTML = formatMessageHtml(normalized);
+    }
+
+    function formatMoney(value) {
+        const amount = Number(value || 0);
+        return amount.toLocaleString('vi-VN') + 'đ';
+    }
+
+    function normalizeProductImage(product) {
+        const image = String((product && (product.image || product.thumbnail || product.thumb)) || '').trim();
+        if (image !== '') {
+            return image;
+        }
+
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240">' +
+            '<defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1">' +
+            '<stop offset="0%" stop-color="#dbeafe"/><stop offset="100%" stop-color="#eff6ff"/>' +
+            '</linearGradient></defs>' +
+            '<rect width="320" height="240" rx="24" fill="url(#g)"/>' +
+            '<circle cx="160" cy="104" r="38" fill="#93c5fd" opacity="0.85"/>' +
+            '<rect x="92" y="152" width="136" height="26" rx="13" fill="#60a5fa" opacity="0.55"/>' +
+            '<text x="160" y="214" text-anchor="middle" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="20" font-weight="700">TECHGEAR</text>' +
+            '</svg>'
+        );
+    }
+
+    function isProductOnSale(product) {
+        return Boolean(
+            product && (
+                product.is_sale === true ||
+                product.is_sale === 'true' ||
+                Number(product.discount_percent || 0) > 0
+            )
+        );
+    }
+
+    function createProductCard(product) {
+        const item = document.createElement('article');
+        item.className = 'chatbox-product';
+
+        const media = document.createElement('div');
+        media.className = 'chatbox-product-media';
+
+        const imageWrap = document.createElement('div');
+        imageWrap.className = 'chatbox-product-image-wrap';
+
+        const img = document.createElement('img');
+        img.className = 'chatbox-product-image';
+        img.alt = product && product.name ? String(product.name) : 'Sản phẩm';
+        img.loading = 'lazy';
+        img.src = normalizeProductImage(product);
+        img.onerror = function () {
+            this.onerror = null;
+            this.src = normalizeProductImage({});
+        };
+        imageWrap.appendChild(img);
+
+        if (isProductOnSale(product)) {
+            const saleBadge = document.createElement('span');
+            saleBadge.className = 'chatbox-product-sale-badge';
+            saleBadge.textContent = '🔥 Đang Sale';
+            imageWrap.appendChild(saleBadge);
+        }
+
+        media.appendChild(imageWrap);
+        item.appendChild(media);
+
+        const content = document.createElement('div');
+        content.className = 'chatbox-product-content';
+
+        const title = document.createElement('h4');
+        title.className = 'chatbox-product-title';
+        title.textContent = product && product.name ? String(product.name) : 'Sản phẩm';
+        content.appendChild(title);
+
+        const price = document.createElement('div');
+        price.className = 'chatbox-product-price';
+        price.textContent = 'Giá bán: ' + formatMoney(product && product.price);
+        content.appendChild(price);
+
+        if (Number(product && product.original_price || 0) > Number(product && product.price || 0)) {
+            const oldPrice = document.createElement('div');
+            oldPrice.className = 'chatbox-product-old-price';
+            oldPrice.textContent = 'Giá gốc: ' + formatMoney(product.original_price);
+            content.appendChild(oldPrice);
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'chatbox-product-actions';
+
+        const detailButton = document.createElement('button');
+        detailButton.type = 'button';
+        detailButton.className = 'chatbox-product-detail-btn';
+        detailButton.setAttribute('data-chat-product-detail', String(product && product.id || 0));
+        detailButton.textContent = 'Chi tiết sản phẩm';
+        actions.appendChild(detailButton);
+
+        const openButton = document.createElement('a');
+        openButton.className = 'chatbox-product-open-btn';
+        openButton.href = (product && product.url) || '/products';
+        openButton.target = '_blank';
+        openButton.rel = 'noopener noreferrer';
+        openButton.textContent = 'Vô trang sản phẩm';
+        actions.appendChild(openButton);
+
+        content.appendChild(actions);
+        item.appendChild(content);
+
+        return item;
+    }
+
     function removeTypingIndicators() {
         const typingNodes = body.querySelectorAll('.chatbox-typing');
         typingNodes.forEach(function (node) {
@@ -83,11 +202,11 @@
         body.appendChild(el);
         body.scrollTop = body.scrollHeight;
 
-        const shouldAnimate = settings.animate === true && role === 'bot';
+        const shouldAnimate = settings.animate === true && role === 'bot' && settings.html !== true;
         const renderPromise = shouldAnimate
             ? animateMessageText(el, normalized)
             : Promise.resolve().then(function () {
-                el.innerHTML = formatMessageHtml(normalized);
+                renderMessageContent(el, normalized, settings.html === true);
                 body.scrollTop = body.scrollHeight;
             });
 
@@ -96,6 +215,7 @@
                 type: 'message',
                 role: role,
                 text: normalized,
+                html: settings.html === true,
             });
             return el;
         });
@@ -129,62 +249,7 @@
         wrap.className = 'chatbox-products';
 
         products.forEach(function (product) {
-            const item = document.createElement('div');
-            item.className = 'chatbox-product';
-
-            const top = document.createElement('div');
-            top.className = 'chatbox-product-top';
-
-            const name = document.createElement('a');
-            name.className = 'chatbox-product-name';
-            name.href = product.url || '/products';
-            name.textContent = product.name || 'Sản phẩm';
-            top.appendChild(name);
-
-            if (Number(product.discount_percent || 0) > 0) {
-                const discount = document.createElement('span');
-                discount.className = 'chatbox-discount';
-                discount.textContent = '-' + Number(product.discount_percent || 0) + '%';
-                top.appendChild(discount);
-            }
-            item.appendChild(top);
-
-            const price = document.createElement('div');
-            price.className = 'chatbox-product-meta';
-            const amount = Number(product.price || 0).toLocaleString('vi-VN') + 'đ';
-            const category = product.category ? (' • ' + product.category) : '';
-            let text = 'Giá: ' + amount;
-            if (Number(product.original_price || 0) > Number(product.price || 0)) {
-                text += ' (gốc ' + Number(product.original_price || 0).toLocaleString('vi-VN') + 'đ)';
-            }
-            text += category;
-            price.textContent = text;
-            item.appendChild(price);
-
-            const stock = document.createElement('div');
-            stock.className = 'chatbox-product-stock ' + (Number(product.stock || 0) > 0 ? 'in-stock' : 'out-stock');
-            stock.textContent = Number(product.stock || 0) > 0 ? 'Còn hàng' : 'Tạm hết hàng';
-            item.appendChild(stock);
-
-            const actions = document.createElement('div');
-            actions.className = 'chatbox-product-actions';
-
-            const openButton = document.createElement('a');
-            openButton.className = 'chatbox-product-open-btn';
-            openButton.href = product.url || '/products';
-            openButton.textContent = 'Mở trang sản phẩm';
-            actions.appendChild(openButton);
-
-            const detailButton = document.createElement('button');
-            detailButton.type = 'button';
-            detailButton.className = 'chatbox-product-detail-btn';
-            detailButton.setAttribute('data-chat-product-detail', String(product.id || 0));
-            detailButton.textContent = 'Thông tin chi tiết';
-            actions.appendChild(detailButton);
-
-            item.appendChild(actions);
-
-            wrap.appendChild(item);
+            wrap.appendChild(createProductCard(product));
         });
 
         body.appendChild(wrap);
@@ -202,6 +267,8 @@
                     original_price: Number(product.original_price || 0),
                     stock: Number(product.stock || 0),
                     discount_percent: Number(product.discount_percent || 0),
+                    is_sale: Boolean(product.is_sale || Number(product.discount_percent || 0) > 0),
+                    image: String(product.image || product.thumbnail || ''),
                     slug: String(product.slug || ''),
                 };
             }),
@@ -251,11 +318,11 @@
         });
     }
 
-    function appendMessageHydrated(text, role) {
+    function appendMessageHydrated(text, role, html) {
         const el = document.createElement('div');
         el.className = 'chatbox-message ' + role;
         const normalized = String(text || '').trim();
-        el.innerHTML = formatMessageHtml(normalized);
+        renderMessageContent(el, normalized, html === true);
         body.appendChild(el);
         return el;
     }
@@ -269,62 +336,7 @@
         wrap.className = 'chatbox-products';
 
         products.forEach(function (product) {
-            const item = document.createElement('div');
-            item.className = 'chatbox-product';
-
-            const top = document.createElement('div');
-            top.className = 'chatbox-product-top';
-
-            const name = document.createElement('a');
-            name.className = 'chatbox-product-name';
-            name.href = product.url || '/products';
-            name.textContent = product.name || 'Sản phẩm';
-            top.appendChild(name);
-
-            if (Number(product.discount_percent || 0) > 0) {
-                const discount = document.createElement('span');
-                discount.className = 'chatbox-discount';
-                discount.textContent = '-' + Number(product.discount_percent || 0) + '%';
-                top.appendChild(discount);
-            }
-            item.appendChild(top);
-
-            const price = document.createElement('div');
-            price.className = 'chatbox-product-meta';
-            const amount = Number(product.price || 0).toLocaleString('vi-VN') + 'đ';
-            const category = product.category ? (' • ' + product.category) : '';
-            let text = 'Giá: ' + amount;
-            if (Number(product.original_price || 0) > Number(product.price || 0)) {
-                text += ' (gốc ' + Number(product.original_price || 0).toLocaleString('vi-VN') + 'đ)';
-            }
-            text += category;
-            price.textContent = text;
-            item.appendChild(price);
-
-            const stock = document.createElement('div');
-            stock.className = 'chatbox-product-stock ' + (Number(product.stock || 0) > 0 ? 'in-stock' : 'out-stock');
-            stock.textContent = Number(product.stock || 0) > 0 ? 'Còn hàng' : 'Tạm hết hàng';
-            item.appendChild(stock);
-
-            const actions = document.createElement('div');
-            actions.className = 'chatbox-product-actions';
-
-            const openButton = document.createElement('a');
-            openButton.className = 'chatbox-product-open-btn';
-            openButton.href = product.url || '/products';
-            openButton.textContent = 'Mở trang sản phẩm';
-            actions.appendChild(openButton);
-
-            const detailButton = document.createElement('button');
-            detailButton.type = 'button';
-            detailButton.className = 'chatbox-product-detail-btn';
-            detailButton.setAttribute('data-chat-product-detail', String(product.id || 0));
-            detailButton.textContent = 'Thông tin chi tiết';
-            actions.appendChild(detailButton);
-
-            item.appendChild(actions);
-
-            wrap.appendChild(item);
+            wrap.appendChild(createProductCard(product));
         });
 
         body.appendChild(wrap);
@@ -363,7 +375,7 @@
             }
 
             if (entry.type === 'message') {
-                appendMessageHydrated(String(entry.text || ''), String(entry.role || 'bot'));
+                appendMessageHydrated(String(entry.text || ''), String(entry.role || 'bot'), entry.html === true);
                 return;
             }
 
@@ -417,7 +429,7 @@
         }
 
         removeTypingIndicators();
-        await appendMessage(String(data.reply || 'Mình đã nhận yêu cầu của bạn.'), 'bot', { animate: true });
+        await appendMessage(String(data.reply || 'Mình đã nhận yêu cầu của bạn.'), 'bot', { animate: true, html: data.html === true });
         appendProducts(data.products || []);
     }
 

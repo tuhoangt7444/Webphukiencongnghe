@@ -1,10 +1,9 @@
 <?php
 namespace App\Controllers;
 
-use App\Core\DB;
 use App\Core\Controller;
 use App\Models\Product;
-use App\Services\GeminiChatService;
+use App\Models\Voucher;
 
 final class ChatboxController extends Controller
 {
@@ -35,6 +34,8 @@ final class ChatboxController extends Controller
                 'id' => (int)($product['id'] ?? 0),
                 'name' => (string)($product['name'] ?? ''),
                 'url' => '/product/' . rawurlencode((string)($product['slug'] ?? '')),
+                'image' => $this->normalizeProductImage((string)($product['image'] ?? '')),
+                'is_sale' => ((int)($product['discount_percent'] ?? 0) > 0) || ((int)($product['price'] ?? 0) < (int)($product['original_price'] ?? 0)),
             ],
         ]);
     }
@@ -53,19 +54,71 @@ final class ChatboxController extends Controller
 
         $analysis = $this->analyzeMessage($message);
         $analysis = $this->mergeWithSessionContext($analysis);
-        $intentFromKeywords = $this->detectIntentByKeywordScore($this->normalizeText($message));
-        if ($intentFromKeywords !== 'general') {
-            $analysis['intent'] = match ($intentFromKeywords) {
-                'warranty' => 'warranty_policy',
-                'price' => 'price_filter',
-                default => $intentFromKeywords,
-            };
+        // Intentionally disable keyword-score override because it can wrongly force
+        // intents like price_filter and break high-priority intents (voucher/reset/out_of_scope).
+
+        if ($analysis['intent'] === 'out_of_scope') {
+            $reply = $this->buildReplyMessage($analysis, []);
+            $this->response->json([
+                'ok' => true,
+                'reply' => $reply,
+                'html' => false,
+                'source' => 'local',
+                'intent' => $analysis['intent'],
+                'detected' => [
+                    'keyword' => $analysis['keyword'],
+                    'minPrice' => $analysis['minPrice'],
+                    'maxPrice' => $analysis['maxPrice'],
+                ],
+                'products' => [],
+            ]);
+            return;
         }
+
         $products = [];
         $reply = '';
         $replySource = 'local';
+        $replyHtml = false;
 
-        if ($analysis['intent'] === 'greeting') {
+        if ($analysis['intent'] === 'ask_voucher') {
+            $reply = $this->buildVoucherReplyHtml();
+            $this->response->json([
+                'ok' => true,
+                'reply' => $reply,
+                'html' => true,
+                'source' => $replySource,
+                'intent' => $analysis['intent'],
+                'detected' => [
+                    'keyword' => $analysis['keyword'],
+                    'minPrice' => $analysis['minPrice'],
+                    'maxPrice' => $analysis['maxPrice'],
+                ],
+                'products' => [],
+            ]);
+            return;
+        } elseif ($analysis['intent'] === 'ask_sale') {
+            $reply = 'Mình đã lọc nhanh các sản phẩm đang giảm giá cho bạn ngay bên dưới.';
+            $products = $this->findSaleProductsForChat($analysis);
+            if ($products === []) {
+                $reply = 'Hiện tại mình chưa thấy sản phẩm nào đang giảm giá trong kho. Bạn có thể thử lại sau hoặc xem nhóm sản phẩm bán chạy.';
+            }
+        } elseif ($analysis['intent'] === 'reset_password') {
+            $reply = $this->buildResetPasswordReplyHtml();
+            $this->response->json([
+                'ok' => true,
+                'reply' => $reply,
+                'html' => true,
+                'source' => $replySource,
+                'intent' => $analysis['intent'],
+                'detected' => [
+                    'keyword' => $analysis['keyword'],
+                    'minPrice' => $analysis['minPrice'],
+                    'maxPrice' => $analysis['maxPrice'],
+                ],
+                'products' => [],
+            ]);
+            return;
+        } elseif ($analysis['intent'] === 'greeting') {
             $reply = 'Chào bạn. Mình có thể giúp bạn tìm phụ kiện theo ngân sách, nhu cầu gaming/văn phòng, hoặc so sánh nhanh vài mẫu phù hợp.';
             $products = Product::suggestForChat('gaming', null, null, 4);
         } elseif ($analysis['intent'] === 'thanks') {
@@ -90,7 +143,86 @@ final class ChatboxController extends Controller
             }
         } elseif ($analysis['intent'] === 'mouse') {
             $reply = 'Mình lọc nhanh nhóm chuột gaming đang có sẵn cho bạn ngay bên dưới.';
-            $products = Product::suggestForChat('chuột gaming', $analysis['minPrice'], $analysis['maxPrice'], 5);
+            $mouseKeyword = $analysis['keyword'] !== '' ? $analysis['keyword'] : 'chuot';
+            $products = Product::suggestForChat($mouseKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'chuot');
+        } elseif ($analysis['intent'] === 'keyboard') {
+            $reply = 'Mình lọc nhanh nhóm bàn phím đang có sẵn cho bạn ngay bên dưới.';
+            $keyboardKeyword = $analysis['keyword'] !== '' ? $analysis['keyword'] : 'bàn phím';
+            $products = Product::suggestForChat($keyboardKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'bàn phím');
+            if ($products === []) {
+                $products = Product::suggestForChat($keyboardKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'ban phim');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat($keyboardKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'keyboard');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat('', $analysis['minPrice'], $analysis['maxPrice'], 5, 'bàn phím');
+            }
+        } elseif ($analysis['intent'] === 'headphone') {
+            $reply = 'Mình lọc nhanh nhóm tai nghe đang có sẵn cho bạn ngay bên dưới.';
+            $headphoneKeyword = $analysis['keyword'] !== '' ? $analysis['keyword'] : 'tai nghe';
+            $products = Product::suggestForChat($headphoneKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'tai nghe');
+            if ($products === []) {
+                $products = Product::suggestForChat($headphoneKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'tay nghe');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat($headphoneKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'headphone');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat('', $analysis['minPrice'], $analysis['maxPrice'], 5, 'tai nghe');
+            }
+        } elseif ($analysis['intent'] === 'monitor') {
+            $reply = 'Mình lọc nhanh nhóm màn hình đang có sẵn cho bạn ngay bên dưới.';
+            $monitorKeyword = $analysis['keyword'] !== '' ? $analysis['keyword'] : 'màn hình';
+            $products = Product::suggestForChat($monitorKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'màn hình');
+            if ($products === []) {
+                $products = Product::suggestForChat($monitorKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'man hinh');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat($monitorKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'monitor');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat('', $analysis['minPrice'], $analysis['maxPrice'], 5, 'màn hình');
+            }
+        } elseif ($analysis['intent'] === 'speaker') {
+            $reply = 'Mình lọc nhanh nhóm loa đang có sẵn cho bạn ngay bên dưới.';
+            $speakerKeyword = $analysis['keyword'] !== '' ? $analysis['keyword'] : 'loa';
+            $products = Product::suggestForChat($speakerKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'loa');
+            if ($products === []) {
+                $products = Product::suggestForChat($speakerKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'soundbar');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat('', $analysis['minPrice'], $analysis['maxPrice'], 5, 'loa');
+            }
+        } elseif ($analysis['intent'] === 'mousepad') {
+            $reply = 'Mình lọc nhanh nhóm lót chuột đang có sẵn cho bạn ngay bên dưới.';
+            $mousepadKeyword = $analysis['keyword'] !== '' ? $analysis['keyword'] : 'lót chuột';
+            $products = Product::suggestForChat($mousepadKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'lót chuột');
+            if ($products === []) {
+                $products = Product::suggestForChat($mousepadKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'lot chuot');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat($mousepadKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'pad chuot');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat('', $analysis['minPrice'], $analysis['maxPrice'], 5, 'lót chuột');
+            }
+        } elseif ($analysis['intent'] === 'backpack') {
+            $reply = 'Mình lọc nhanh nhóm balo và túi chống sốc đang có sẵn cho bạn ngay bên dưới.';
+            $backpackKeyword = $analysis['keyword'] !== '' ? $analysis['keyword'] : 'balo';
+            $products = Product::suggestForChat($backpackKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'balo');
+            if ($products === []) {
+                $products = Product::suggestForChat($backpackKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'ba lo');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat('', $analysis['minPrice'], $analysis['maxPrice'], 5, 'balo');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat($backpackKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'túi chống sốc');
+            }
+            if ($products === []) {
+                $products = Product::suggestForChat($backpackKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5, 'tui chong soc');
+            }
         } elseif ($analysis['intent'] === 'compare') {
             $reply = 'Mình đã tìm các mẫu gần nhất để bạn so sánh nhanh. Bạn có thể bấm "Thông tin chi tiết" từng mẫu để xem cấu hình và bảo hành đầy đủ.';
             $compareKeywords = $this->extractCompareKeywords($message, $analysis);
@@ -110,7 +242,23 @@ final class ChatboxController extends Controller
         } elseif ($analysis['intent'] === 'price_filter') {
             $reply = 'Mình đã lọc nhanh theo khoảng ngân sách bạn nhập.';
             $baseKeyword = $analysis['keyword'] !== '' ? $analysis['keyword'] : (string)($_SESSION['chatbox_last_keyword'] ?? '');
+            if ($this->isGenericBudgetKeyword($baseKeyword)) {
+                $baseKeyword = '';
+            }
             $products = Product::suggestForChat($baseKeyword, $analysis['minPrice'], $analysis['maxPrice'], 5);
+            if ($products === [] && $baseKeyword !== '') {
+                $products = Product::suggestForChat('', $analysis['minPrice'], $analysis['maxPrice'], 5);
+            }
+            if ($products === [] && ($analysis['minPrice'] !== null || $analysis['maxPrice'] !== null)) {
+                $nearRange = $this->expandPriceRange($analysis['minPrice'], $analysis['maxPrice']);
+                $products = Product::suggestForChat($baseKeyword, $nearRange['min'], $nearRange['max'], 5);
+                if ($products === [] && $baseKeyword !== '') {
+                    $products = Product::suggestForChat('', $nearRange['min'], $nearRange['max'], 5);
+                }
+                if ($products !== []) {
+                    $reply = 'Mình chưa thấy mẫu khớp đúng ngân sách bạn nhập, nên đã nới nhẹ khoảng giá để gợi ý các sản phẩm gần mức bạn cần.';
+                }
+            }
         } elseif ($analysis['intent'] === 'product_detail') {
             $lookupTerm = $analysis['productTerm'] !== ''
                 ? $analysis['productTerm']
@@ -149,17 +297,12 @@ final class ChatboxController extends Controller
             }
         }
 
-        if ($products !== [] && !in_array($analysis['intent'], ['product_detail', 'spec_vram'], true)) {
-            $reply .= "\n\n" . $this->buildProductSummary($products);
+        if ($products !== []) {
+            $products = $this->prioritizeProductsWithImage($products);
         }
 
-        $geminiReply = $this->tryGeminiRewrite($message, $analysis, $products, $reply);
-        if ($geminiReply !== null) {
-            $reply = $geminiReply;
-            $replySource = 'gemini';
-        } else {
-            $reply = 'Hiện tại trợ lý Gemini đang tạm gián đoạn. Bạn vui lòng thử lại sau ít phút.';
-            $replySource = 'gemini_unavailable';
+        if ($products !== [] && !in_array($analysis['intent'], ['product_detail', 'spec_vram'], true)) {
+            $reply .= "\n\n" . $this->buildProductSummary($products);
         }
 
         if ($analysis['keyword'] !== '') {
@@ -175,6 +318,7 @@ final class ChatboxController extends Controller
         $this->response->json([
             'ok' => true,
             'reply' => $reply,
+            'html' => $replyHtml,
             'source' => $replySource,
             'intent' => $analysis['intent'],
             'detected' => [
@@ -182,16 +326,22 @@ final class ChatboxController extends Controller
                 'minPrice' => $analysis['minPrice'],
                 'maxPrice' => $analysis['maxPrice'],
             ],
-            'products' => array_map(static function (array $item): array {
+            'products' => array_map(function (array $item): array {
+                $discountPercent = (int)($item['discount_percent'] ?? 0);
+                $price = (int)($item['price'] ?? 0);
+                $originalPrice = (int)($item['original_price'] ?? 0);
+
                 return [
                     'id' => (int)($item['id'] ?? 0),
                     'name' => (string)($item['name'] ?? ''),
                     'slug' => (string)($item['slug'] ?? ''),
                     'category' => (string)($item['category_name'] ?? ''),
-                    'price' => (int)($item['price'] ?? 0),
-                    'original_price' => (int)($item['original_price'] ?? 0),
+                    'price' => $price,
+                    'original_price' => $originalPrice,
                     'stock' => (int)($item['stock_total'] ?? 0),
-                    'discount_percent' => (int)($item['discount_percent'] ?? 0),
+                    'discount_percent' => $discountPercent,
+                    'image' => $this->normalizeProductImage((string)($item['image'] ?? '')),
+                    'is_sale' => $discountPercent > 0 || $price < $originalPrice,
                     'url' => '/product/' . rawurlencode((string)($item['slug'] ?? '')),
                 ];
             }, $products),
@@ -207,19 +357,20 @@ final class ChatboxController extends Controller
         $detectedMax = null;
         $detectedMin = null;
 
-        if (preg_match('/(?:duoi|dưới|toi da|tối đa|max)\s*([\d\.,]+)\s*(trieu|triệu|k|nghin|nghìn)?/u', $clean, $m)) {
+        if (preg_match('/(?:duoi|dưới|toi da|tối đa|max)\s*([\d\.,]+)\s*(trieu|triệu|tr|k|nghin|nghìn|cu|củ)?/u', $clean, $m)) {
             $detectedMax = $this->toVnd($m[1], $m[2] ?? '');
         }
 
-        if (preg_match('/(?:tren|trên|tu|từ|min)\s*([\d\.,]+)\s*(trieu|triệu|k|nghin|nghìn)?/u', $clean, $m)) {
+        if (preg_match('/(?:tren|trên|tu|từ|min)\s*([\d\.,]+)\s*(trieu|triệu|tr|k|nghin|nghìn|cu|củ)?/u', $clean, $m)) {
             $detectedMin = $this->toVnd($m[1], $m[2] ?? '');
         }
 
-        if ($detectedMax === null && preg_match('/([\d\.,]+)\s*(trieu|triệu|k|nghin|nghìn)/u', $clean, $m)) {
+        if ($detectedMin === null && $detectedMax === null
+            && preg_match('/([\d\.,]+)\s*(trieu|triệu|tr|k|nghin|nghìn|cu|củ)/u', $clean, $m)) {
             $detectedMax = $this->toVnd($m[1], $m[2] ?? '');
         }
 
-        if (preg_match('/([\d\.,]+)\s*(trieu|triệu|k|nghin|nghìn)?\s*[-~]\s*([\d\.,]+)\s*(trieu|triệu|k|nghin|nghìn)?/u', $clean, $m)) {
+        if (preg_match('/([\d\.,]+)\s*(trieu|triệu|tr|k|nghin|nghìn|cu|củ)?\s*[-~]\s*([\d\.,]+)\s*(trieu|triệu|tr|k|nghin|nghìn|cu|củ)?/u', $clean, $m)) {
             $detectedMin = $this->toVnd($m[1], $m[2] ?? '');
             $detectedMax = $this->toVnd($m[3], $m[4] ?? ($m[2] ?? ''));
         }
@@ -229,11 +380,20 @@ final class ChatboxController extends Controller
             $detectedMax = $detectedMin + ((int)$m[2]) * 100000;
         }
 
+        // Handle "tầm/khoảng/cỡ/xấp xỉ" as an approximate budget window.
+        if (preg_match('/(?:tam|tầm|khoang|khoảng|co|cỡ|xap xi|xấp xỉ)\s*([\d\.,]+)\s*(trieu|triệu|tr|k|nghin|nghìn|cu|củ)/u', $clean, $m)) {
+            $center = $this->toVnd($m[1], $m[2] ?? '');
+            if ($center > 0) {
+                $detectedMin = (int)floor($center * 0.8);
+                $detectedMax = (int)ceil($center * 1.2);
+            }
+        }
+
         $keywordsToStrip = [
             'gợi ý', 'goi y', 'mua', 'cần', 'can', 'tim', 'tìm', 'giup', 'giúp', 'cho toi', 'cho tôi',
             'thong tin', 'thông tin', 'chi tiet', 'chi tiết', 'xem',
             'duoi', 'dưới', 'toi da', 'tối đa', 'max', 'tren', 'trên', 'tu', 'từ', 'min',
-            'trieu', 'triệu', 'k', 'nghin', 'nghìn',
+            'trieu', 'triệu', 'tr', 'k', 'nghin', 'nghìn', 'cu', 'củ',
         ];
 
         $keyword = $clean;
@@ -260,54 +420,232 @@ final class ChatboxController extends Controller
 
     private function detectIntent(string $normalizedAscii, string $productTerm): string
     {
-        if (preg_match('/\b(xin chao|chao|hello|hi|alo)\b/u', $normalizedAscii)) {
+        $text = trim((string)preg_replace('/\s+/', ' ', $normalizedAscii));
+        if ($text === '' && $productTerm === '') {
+            return 'out_of_scope';
+        }
+
+        // 1) High-priority intents: detect first to prevent fall-through.
+        if ($this->containsAnyKeyword($text, [
+            'khong phai voucher', 'ko phai voucher', 'khong phai ma giam gia', 'ko phai ma giam gia'
+        ], false) && $this->containsAnyKeyword($text, [
+            'sale', 'giam gia', 'khuyen mai', 'khuyến mãi', 'san pham sale', 'hang sale'
+        ])) {
+            return 'ask_sale';
+        }
+
+        if ($this->containsAnyKeyword($text, [
+            'voucher', 'ma giam gia', 'mã giảm giá', 'ma khuyen mai', 'mã khuyến mãi',
+            'coupon', 'code giam gia', 'code khuyen mai', 'ma uu dai', 'mã ưu đãi'
+        ])) {
+            return 'ask_voucher';
+        }
+
+        if ($this->containsAnyKeyword($text, [
+            'sale', 'dang sale', 'giam gia', 'khuyen mai', 'khuyến mãi',
+            'khuyen maii', 'khuyển mãi', 'san pham sale', 'mat hang sale', 'hang dang sale', 'uu dai'
+        ], false)) {
+            return 'ask_sale';
+        }
+
+        if ($this->containsAnyKeyword($text, [
+            'quen mat khau', 'quên mật khẩu', 'doi mat khau', 'đổi mật khẩu',
+            'doi pass', 'đổi pass', 'lay lai pass', 'lấy lại pass',
+            'lay lai mat khau', 'reset password', 'forgot password'
+        ])) {
+            return 'reset_password';
+        }
+
+        if ($this->containsAnyKeyword($text, [
+            'quan ao', 'quần áo', 'giay', 'giày', 'do an', 'đồ ăn', 'thoi trang', 'fashion'
+        ], false)) {
+            return 'out_of_scope';
+        }
+
+        // 2) Product/service intents.
+        if (preg_match('/\b(xin chao|chao|hello|hi|alo)\b/u', $text)) {
             return 'greeting';
         }
 
-        if (preg_match('/\b(cam on|thanks|thank you)\b/u', $normalizedAscii)) {
+        if ($this->containsAnyKeyword($text, ['cam on', 'thanks', 'thank you'], false)) {
             return 'thanks';
         }
 
-        $keywordIntent = $this->detectIntentByKeywordScore($normalizedAscii);
-        if ($keywordIntent !== 'general') {
-            return match ($keywordIntent) {
-                'warranty' => 'warranty_policy',
-                'price' => 'price_filter',
-                default => $keywordIntent,
-            };
-        }
-
-        if (str_contains($normalizedAscii, 'giao hang') || str_contains($normalizedAscii, 'van chuyen') || str_contains($normalizedAscii, 'ship')) {
+        if ($this->containsAnyKeyword($text, ['giao hang', 'van chuyen', 'ship'], false)) {
             return 'shipping_policy';
         }
 
-        if (str_contains($normalizedAscii, 'so sanh') || str_contains($normalizedAscii, 'vs ') || str_contains($normalizedAscii, 'khac nhau')) {
+        if ($this->containsAnyKeyword($text, ['bao hanh', 'bao tri', 'doi tra', 'chinh sach bao hanh'], false)) {
+            return 'warranty_policy';
+        }
+
+        if ($this->containsAnyKeyword($text, ['so sanh', 'vs', 'khac nhau', 'compare'])) {
             return 'compare';
         }
 
-        if ((str_contains($normalizedAscii, 'vram') || str_contains($normalizedAscii, 'gb')) && $productTerm !== '') {
+        if ($this->containsAnyKeyword($text, ['vram', 'bo nho', 'memory', 'gb']) && $productTerm !== '') {
             return 'spec_vram';
         }
 
-        if (
-            str_contains($normalizedAscii, 'chi tiet')
-            || str_contains($normalizedAscii, 'thong tin')
-            || str_contains($normalizedAscii, 'cau hinh')
-            || str_contains($normalizedAscii, 'bao hanh')
-            || str_contains($normalizedAscii, 'xem')
-        ) {
+        if ($this->containsAnyKeyword($text, ['bàn phím', 'ban phim', 'keyboard', 'phím', 'phim'], false)) {
+            return 'keyboard';
+        }
+
+        if ($this->containsAnyKeyword($text, ['tai nghe', 'tay nghe', 'headphone', 'earphone', 'head set', 'headset'], false)) {
+            return 'headphone';
+        }
+
+        if ($this->containsAnyKeyword($text, ['màn hình', 'man hinh', 'monitor'], false)) {
+            return 'monitor';
+        }
+
+        if ($this->containsAnyKeyword($text, ['lót chuột', 'lot chuot', 'pad chuột', 'pad chuot', 'mousepad'], false)) {
+            return 'mousepad';
+        }
+
+        if ($this->containsAnyKeyword($text, ['balo', 'ba lô', 'ba lo', 'túi chống sốc', 'tui chong soc'], false)) {
+            return 'backpack';
+        }
+
+        if ($this->containsAnyKeyword($text, ['chuot', 'mouse', 'chuot gaming', 'chuot choi game', 'chuot choi'], false)) {
+            return 'mouse';
+        }
+
+        if ($this->containsAnyKeyword($text, ['loa', 'soundbar'], false)) {
+            return 'speaker';
+        }
+
+        if ($this->containsAnyKeyword($text, ['gaming', 'choi game', 'chien game', 'fps', 'esport', 'rgb'])) {
+            return 'gaming';
+        }
+
+        if ($this->containsAnyKeyword($text, ['van phong', 'hoc tap', 'lam viec', 'on dinh', 'nhe'])) {
+            return 'office';
+        }
+
+        if ($this->containsAnyKeyword($text, ['chi tiet', 'thong tin', 'cau hinh', 'xem'])) {
             return 'product_detail';
         }
 
-        if (str_contains($normalizedAscii, 'chuot')) {
-            return 'mouse';
+        if ($this->containsAnyKeyword($text, ['gia', 'duoi', 'tren', 'budget', 'trieu', 'nghin']) || preg_match('/\d/u', $text)) {
+            return 'price_filter';
         }
 
         if ($productTerm !== '') {
             return 'product_detail';
         }
 
-        return 'general';
+        // 3) Domain fallback: if message still looks like tech accessory context, keep general.
+        if ($this->containsAnyKeyword($text, [
+            'phu kien', 'phu kien cong nghe', 'techgear', 'tai nghe', 'ban phim',
+            'laptop', 'vga', 'gpu', 'ram', 'ssd', 'man hinh', 'loa', 'sac', 'cap', 'chuot'
+        ])) {
+            return 'general';
+        }
+
+        return 'out_of_scope';
+    }
+
+    private function containsAnyKeyword(string $text, array $keywords, bool $allowFuzzy = true): bool
+    {
+        foreach ($keywords as $keyword) {
+            $term = trim((string)preg_replace('/\s+/', ' ', $this->normalizeText((string)$keyword)));
+            if ($term === '') {
+                continue;
+            }
+
+            if (str_contains($text, $term)) {
+                return true;
+            }
+
+            if ($allowFuzzy && $this->scoreFuzzyPhrase($text, $term) >= 68) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function scoreIntentKeywords(string $text, array $keywords): int
+    {
+        $best = 0;
+
+        foreach ($keywords as $keyword) {
+            $score = $this->scoreFuzzyPhrase($text, (string)$keyword);
+            if ($score > $best) {
+                $best = $score;
+            }
+        }
+
+        return $best;
+    }
+
+    private function scoreFuzzyPhrase(string $text, string $phrase): int
+    {
+        $text = trim((string)preg_replace('/\s+/', ' ', $text));
+        $phrase = trim((string)preg_replace('/\s+/', ' ', $phrase));
+
+        if ($text === '' || $phrase === '') {
+            return 0;
+        }
+
+        if (str_contains($text, $phrase)) {
+            return 100;
+        }
+
+        $compactText = preg_replace('/\s+/', '', $text) ?? $text;
+        $compactPhrase = preg_replace('/\s+/', '', $phrase) ?? $phrase;
+
+        if ($compactPhrase !== '' && str_contains($compactText, $compactPhrase)) {
+            return 95;
+        }
+
+        similar_text($compactText, $compactPhrase, $similarity);
+        $best = (int)round($similarity);
+
+        $textWords = array_values(array_filter(explode(' ', $text)));
+        $phraseWords = array_values(array_filter(explode(' ', $phrase)));
+
+        if ($textWords === [] || $phraseWords === []) {
+            return $best;
+        }
+
+        $phraseLength = count($phraseWords);
+        $windowSizes = [max(1, $phraseLength - 1), $phraseLength, $phraseLength + 1];
+        $windows = [];
+
+        foreach ($windowSizes as $windowSize) {
+            if ($windowSize <= 0 || $windowSize > count($textWords)) {
+                continue;
+            }
+
+            for ($index = 0; $index <= count($textWords) - $windowSize; $index++) {
+                $windows[] = implode(' ', array_slice($textWords, $index, $windowSize));
+            }
+        }
+
+        foreach (array_unique($windows) as $window) {
+            $compactWindow = preg_replace('/\s+/', '', $window) ?? $window;
+            similar_text($compactWindow, $compactPhrase, $windowSimilarity);
+            $best = max($best, (int)round($windowSimilarity));
+
+            $distance = levenshtein($compactWindow, $compactPhrase);
+            $maxLength = max(strlen($compactWindow), strlen($compactPhrase), 1);
+            $distanceScore = (int)round(100 - (($distance / $maxLength) * 100));
+            $best = max($best, max(0, $distanceScore));
+        }
+
+        foreach ($textWords as $word) {
+            similar_text($word, $compactPhrase, $wordSimilarity);
+            $best = max($best, (int)round($wordSimilarity));
+
+            $distance = levenshtein($word, $compactPhrase);
+            $maxLength = max(strlen($word), strlen($compactPhrase), 1);
+            $distanceScore = (int)round(100 - (($distance / $maxLength) * 100));
+            $best = max($best, max(0, $distanceScore));
+        }
+
+        return $best;
     }
 
     private function normalizeText(string $text): string
@@ -383,182 +721,6 @@ final class ChatboxController extends Controller
         return $bestIntent;
     }
 
-    private function tryGeminiRewrite(string $userMessage, array $analysis, array $products, string $fallbackReply): ?string
-    {
-        $apiKey = $this->getEnvValue('GEMINI_API_KEY');
-        if ($apiKey === '') {
-            return null;
-        }
-
-        $model = $this->getEnvValue('GEMINI_MODEL', 'gemini-2.5-flash');
-        $service = new GeminiChatService($apiKey, $model);
-        if (!$service->isReady()) {
-            return null;
-        }
-
-        $dbContext = $this->collectGeminiContext($userMessage, $analysis, $products);
-        $reply = $service->generateReplyWithContext($analysis, $userMessage, $dbContext, $fallbackReply);
-
-        return $reply !== null && $reply !== '' ? $reply : null;
-    }
-
-    private function collectGeminiContext(string $userMessage, array $analysis, array $products): array
-    {
-        $campaigns = $this->fetchActiveCampaigns(8);
-        $relatedProducts = $this->fetchRelatedProductsForQuestion($userMessage, $analysis, 5);
-
-        if ($relatedProducts === [] && $products !== []) {
-            $relatedProducts = array_map(static function (array $item): array {
-                return [
-                    'id' => (int)($item['id'] ?? 0),
-                    'name' => (string)($item['name'] ?? ''),
-                    'slug' => (string)($item['slug'] ?? ''),
-                    'price' => (int)($item['price'] ?? 0),
-                    'shipping_info' => '',
-                    'warranty_months' => 0,
-                ];
-            }, array_slice($products, 0, 5));
-        }
-
-        return [
-            'campaigns' => $campaigns,
-            'related_products' => $relatedProducts,
-            'shipping_policies' => $relatedProducts,
-            'warranty_policies' => $relatedProducts,
-        ];
-    }
-
-    private function fetchActiveCampaigns(int $limit = 8): array
-    {
-        $sql = "SELECT dc.product_id,
-                       p.name AS product_name,
-                       dc.discount_percent,
-                       dc.start_at,
-                       dc.end_at
-                FROM product_discount_campaigns dc
-                JOIN products p ON p.id = dc.product_id
-                WHERE dc.status = 'active'
-                  AND dc.start_at <= NOW()
-                  AND dc.end_at >= NOW()
-                  AND p.is_active = TRUE
-                ORDER BY dc.discount_percent DESC, dc.end_at ASC
-                LIMIT :lim";
-
-        $st = DB::conn()->prepare($sql);
-        $st->bindValue(':lim', max(1, $limit), \PDO::PARAM_INT);
-        $st->execute();
-
-        return $st->fetchAll() ?: [];
-    }
-
-    private function fetchRelatedProductsForQuestion(string $userMessage, array $analysis, int $limit = 5): array
-    {
-        $normalized = $this->normalizeText($userMessage);
-        $keyword = trim((string)($analysis['keyword'] ?? ''));
-
-        $hints = [];
-        if ($keyword !== '') {
-            $hints[] = $keyword;
-        }
-
-        $typeMap = [
-            'chuot' => ['chuot', 'mouse'],
-            'ban phim' => ['ban phim', 'keyboard', 'phim'],
-            'tai nghe' => ['tai nghe', 'headset', 'headphone'],
-            'laptop' => ['laptop', 'lap top', 'notebook'],
-            'vga' => ['vga', 'gpu', 'rtx', 'gtx', 'rx'],
-        ];
-
-        foreach ($typeMap as $main => $tokens) {
-            foreach ($tokens as $token) {
-                if (str_contains($normalized, $token)) {
-                    $hints[] = $main;
-                    break;
-                }
-            }
-        }
-
-        $hints = array_values(array_unique(array_filter($hints)));
-
-        if ($hints !== []) {
-            foreach ($hints as $hint) {
-                $rows = $this->queryRelatedProductsByHint($hint, $limit);
-                if ($rows !== []) {
-                    return $rows;
-                }
-            }
-        }
-
-        return $this->queryNewestProducts($limit);
-    }
-
-    private function queryRelatedProductsByHint(string $hint, int $limit): array
-    {
-        $sql = "SELECT p.id,
-                       p.name,
-                       p.slug,
-                       COALESCE(MIN(v.sale_price), p.price, 0)::bigint AS price,
-                       COALESCE(MAX(p.shipping_info), '') AS shipping_info,
-                       COALESCE(MAX(p.warranty_months), 0) AS warranty_months
-                FROM products p
-                LEFT JOIN product_variants v ON v.product_id = p.id AND v.is_active = TRUE
-                WHERE p.is_active = TRUE
-                  AND (
-                    p.name ILIKE :hint
-                    OR p.slug ILIKE :hint
-                  )
-                GROUP BY p.id, p.name, p.slug, p.created_at
-                ORDER BY p.created_at DESC, p.id DESC
-                LIMIT :lim";
-
-        $st = DB::conn()->prepare($sql);
-        $st->bindValue(':hint', '%' . trim($hint) . '%', \PDO::PARAM_STR);
-        $st->bindValue(':lim', max(1, $limit), \PDO::PARAM_INT);
-        $st->execute();
-
-        return $st->fetchAll() ?: [];
-    }
-
-    private function queryNewestProducts(int $limit): array
-    {
-        $sql = "SELECT p.id,
-                       p.name,
-                       p.slug,
-                       COALESCE(MIN(v.sale_price), p.price, 0)::bigint AS price,
-                       COALESCE(MAX(p.shipping_info), '') AS shipping_info,
-                       COALESCE(MAX(p.warranty_months), 0) AS warranty_months
-                FROM products p
-                LEFT JOIN product_variants v ON v.product_id = p.id AND v.is_active = TRUE
-                WHERE p.is_active = TRUE
-                GROUP BY p.id, p.name, p.slug, p.created_at
-                ORDER BY p.created_at DESC, p.id DESC
-                LIMIT :lim";
-
-        $st = DB::conn()->prepare($sql);
-        $st->bindValue(':lim', max(1, $limit), \PDO::PARAM_INT);
-        $st->execute();
-
-        return $st->fetchAll() ?: [];
-    }
-
-    private function getEnvValue(string $key, string $default = ''): string
-    {
-        $value = getenv($key);
-        if (is_string($value) && trim($value) !== '') {
-            return trim($value);
-        }
-
-        if (isset($_ENV[$key]) && is_string($_ENV[$key]) && trim($_ENV[$key]) !== '') {
-            return trim($_ENV[$key]);
-        }
-
-        if (isset($_SERVER[$key]) && is_string($_SERVER[$key]) && trim($_SERVER[$key]) !== '') {
-            return trim($_SERVER[$key]);
-        }
-
-        return $default;
-    }
-
     private function normalizeKeyword(string $keyword, string $normalizedAscii): string
     {
         if ($keyword !== '') {
@@ -601,11 +763,14 @@ final class ChatboxController extends Controller
             $analysis['productTerm'] = (string)$last['productTerm'];
         }
 
-        if ($analysis['minPrice'] === null && isset($last['minPrice']) && is_int($last['minPrice'])) {
+        $carryPriceContext = in_array((string)($analysis['intent'] ?? ''), ['price_filter', 'ask_sale'], true)
+            || $needContextKeyword;
+
+        if ($carryPriceContext && $analysis['minPrice'] === null && isset($last['minPrice']) && is_int($last['minPrice'])) {
             $analysis['minPrice'] = $last['minPrice'];
         }
 
-        if ($analysis['maxPrice'] === null && isset($last['maxPrice']) && is_int($last['maxPrice'])) {
+        if ($carryPriceContext && $analysis['maxPrice'] === null && isset($last['maxPrice']) && is_int($last['maxPrice'])) {
             $analysis['maxPrice'] = $last['maxPrice'];
         }
 
@@ -711,7 +876,7 @@ final class ChatboxController extends Controller
         $number = (float)str_replace(',', '.', preg_replace('/[^\d\.,]/', '', $value) ?? '0');
         $unit = mb_strtolower(trim($unit), 'UTF-8');
 
-        if (in_array($unit, ['trieu', 'triệu'], true)) {
+        if (in_array($unit, ['trieu', 'triệu', 'tr', 'cu', 'củ'], true)) {
             return (int)round($number * 1000000);
         }
 
@@ -722,8 +887,47 @@ final class ChatboxController extends Controller
         return (int)round($number);
     }
 
+    private function isGenericBudgetKeyword(string $keyword): bool
+    {
+        $normalized = $this->normalizeText($keyword);
+        if ($normalized === '') {
+            return true;
+        }
+
+        $generic = [
+            'co', 'co gi', 'co gi khong', 'khong', 'nua', 'nhe', 'shop',
+            'gia', 'muc gia', 'tam gia', 'ngan sach', 'phu kien', 'san pham',
+        ];
+
+        return in_array($normalized, $generic, true);
+    }
+
+    private function expandPriceRange(?int $minPrice, ?int $maxPrice): array
+    {
+        $min = $minPrice;
+        $max = $maxPrice;
+
+        if ($min !== null) {
+            $min = max(0, (int)floor($min * 0.8));
+        }
+
+        if ($max !== null) {
+            $max = (int)ceil($max * 1.2);
+        }
+
+        if ($min !== null && $max !== null && $min > $max) {
+            [$min, $max] = [$max, $min];
+        }
+
+        return ['min' => $min, 'max' => $max];
+    }
+
     private function buildReplyMessage(array $analysis, array $products): string
     {
+        if (($analysis['intent'] ?? '') === 'out_of_scope') {
+            return 'Xin lỗi, chúng tôi không thể trả lời câu hỏi không liên quan đến shop. Bạn có cần tư vấn về phụ kiện công nghệ nào không?';
+        }
+
         if ($products === []) {
             return 'Mình chưa thấy sản phẩm phù hợp với yêu cầu hiện tại. Bạn thử nới khoảng giá hoặc nhập rõ hơn theo mẫu: "tai nghe gaming dưới 2 triệu", "chuột không dây 500k-1tr", hoặc "so sánh RTX 4060 và RTX 3060".';
         }
@@ -745,6 +949,82 @@ final class ChatboxController extends Controller
         }
 
         return implode(' ', $parts) . '. Bạn có thể bấm vào từng sản phẩm để xem chi tiết kỹ hơn.';
+    }
+
+    private function buildVoucherReplyHtml(): string
+    {
+        $rows = Voucher::listPublicAvailable(6);
+
+        if ($rows === []) {
+            $rows = [
+                ['code' => 'TECH10', 'name' => 'Giảm 10% cho đơn từ 500k'],
+                ['code' => 'FREESHIP', 'name' => 'Miễn phí giao hàng'],
+            ];
+        }
+
+        $html = 'Hiện tại TECHGEAR có các ưu đãi sau:<br>';
+        foreach ($rows as $row) {
+            $code = htmlspecialchars(strtoupper((string)($row['code'] ?? '')), ENT_QUOTES, 'UTF-8');
+            $name = htmlspecialchars((string)($row['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $html .= '- Mã <b>' . $code . '</b>: ' . $name . '<br>';
+        }
+
+        $html .= 'Bạn không cần nhập mã trong chat. Hãy vào <a href="/#home-voucher-claim" target="_blank" rel="noopener noreferrer"><b>trang chủ - mục Phiếu giảm giá</b></a> để bấm <b>Lấy phiếu</b> nhé.';
+
+        return $html;
+    }
+
+    private function buildResetPasswordReplyHtml(): string
+    {
+        return 'Để đặt lại mật khẩu, bạn làm theo 3 bước sau:<br>'
+            . '1. Bấm vào <b>Đăng nhập</b> ở góc phải màn hình.<br>'
+            . '2. Chọn <b>Quên mật khẩu</b>.<br>'
+            . '3. Nhập email của bạn để nhận link đổi mật khẩu.<br>'
+            . 'Hoặc click trực tiếp <a href="/forgot-password" target="_blank" rel="noopener noreferrer">vào link này</a> nhé.';
+    }
+
+    private function findSaleProductsForChat(array $analysis, int $limit = 6): array
+    {
+        $pool = [];
+        $keywords = array_values(array_unique([
+            (string)($analysis['keyword'] ?? ''),
+            'sale',
+            'giam gia',
+            'khuyen mai',
+            '',
+        ]));
+
+        foreach ($keywords as $kw) {
+            $rows = Product::suggestForChat(
+                $kw,
+                $analysis['minPrice'] ?? null,
+                $analysis['maxPrice'] ?? null,
+                12
+            );
+
+            foreach ($rows as $row) {
+                $id = (int)($row['id'] ?? 0);
+                if ($id <= 0) {
+                    continue;
+                }
+
+                $discountPercent = (int)($row['discount_percent'] ?? 0);
+                $price = (int)($row['price'] ?? 0);
+                $originalPrice = (int)($row['original_price'] ?? 0);
+                $isSale = $discountPercent > 0 || ($originalPrice > 0 && $price < $originalPrice);
+
+                if (!$isSale) {
+                    continue;
+                }
+
+                $pool[$id] = $row;
+                if (count($pool) >= $limit) {
+                    break 2;
+                }
+            }
+        }
+
+        return array_slice(array_values($pool), 0, $limit);
     }
 
     private function buildProductSummary(array $products): string
@@ -848,6 +1128,39 @@ final class ChatboxController extends Controller
         $lines[] = 'Bạn có thể bấm vào link sản phẩm để xem đầy đủ hình ảnh và thông tin cập nhật mới nhất.';
 
         return implode("\n", $lines);
+    }
+
+    private function normalizeProductImage(string $image): string
+    {
+        $image = trim($image);
+        if ($image === '') {
+            return '';
+        }
+
+        if (preg_match('/^https?:\/\//i', $image) || str_starts_with($image, '/')) {
+            return $image;
+        }
+
+        return '/' . ltrim($image, '/');
+    }
+
+    private function prioritizeProductsWithImage(array $products): array
+    {
+        usort($products, function (array $left, array $right): int {
+            $leftImage = trim((string)($left['image'] ?? ''));
+            $rightImage = trim((string)($right['image'] ?? ''));
+
+            $leftHasImage = $leftImage !== '' && $leftImage !== '/images/logo.png';
+            $rightHasImage = $rightImage !== '' && $rightImage !== '/images/logo.png';
+
+            if ($leftHasImage === $rightHasImage) {
+                return 0;
+            }
+
+            return $leftHasImage ? -1 : 1;
+        });
+
+        return $products;
     }
 
     private function truncateText(string $text, int $limit): string

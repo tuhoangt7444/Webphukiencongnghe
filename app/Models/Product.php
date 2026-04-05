@@ -729,7 +729,13 @@ final class Product {
         return $id !== false ? (int)$id : null;
     }
 
-    public static function suggestForChat(string $keyword = '', ?int $minPrice = null, ?int $maxPrice = null, int $limit = 5): array
+    public static function suggestForChat(
+        string $keyword = '',
+        ?int $minPrice = null,
+        ?int $maxPrice = null,
+        int $limit = 5,
+        string $strictTypeKeyword = ''
+    ): array
     {
         $pdo = DB::conn();
 
@@ -740,6 +746,12 @@ final class Product {
         if ($keyword !== '') {
             $conditions[] = '(p.name ILIKE :keyword OR c.name ILIKE :keyword OR COALESCE(p.short_description, \'\') ILIKE :keyword)';
             $params['keyword'] = '%' . $keyword . '%';
+        }
+
+        $strictTypeKeyword = trim($strictTypeKeyword);
+        if ($strictTypeKeyword !== '') {
+            $conditions[] = '(p.name ILIKE :strict_type OR c.name ILIKE :strict_type)';
+            $params['strict_type'] = '%' . $strictTypeKeyword . '%';
         }
 
         if ($minPrice !== null) {
@@ -769,6 +781,12 @@ final class Product {
                       AND dc.start_at <= NOW()
                       AND dc.end_at >= NOW()
                     ORDER BY dc.product_id, dc.discount_percent DESC
+                ), first_image AS (
+                    SELECT DISTINCT ON (pi.product_id)
+                        pi.product_id,
+                        pi.image_url
+                    FROM product_images pi
+                    ORDER BY pi.product_id, pi.sort_order ASC, pi.id ASC
                 )
                 SELECT p.id,
                        p.name,
@@ -785,11 +803,13 @@ final class Product {
                                 - FLOOR(COALESCE(vs.price_from, p.price, 0)::numeric * ac.discount_percent / 100.0)
                            )::bigint
                            ELSE COALESCE(vs.price_from, p.price, 0)::bigint
-                       END AS price
+                       END AS price,
+                       COALESCE(fi.image_url, '') AS image
                 FROM products p
                 LEFT JOIN variant_stats vs ON vs.product_id = p.id
                 LEFT JOIN categories c ON c.id = p.category_id
                 LEFT JOIN active_campaigns ac ON ac.product_id = p.id
+                LEFT JOIN first_image fi ON fi.product_id = p.id
                 WHERE " . implode(' AND ', $conditions) . "
                 ORDER BY COALESCE(vs.stock_total, 0) DESC, p.created_at DESC, p.id DESC
                 LIMIT :limit";
@@ -870,7 +890,7 @@ final class Product {
     {
         $pdo = DB::conn();
         $st = $pdo->prepare(
-            "WITH variant_stats AS (
+             "WITH variant_stats AS (
                 SELECT v.product_id,
                        MIN(v.sale_price) AS price_from,
                        MIN(v.base_price) AS base_price_from,
@@ -882,6 +902,12 @@ final class Product {
                 LEFT JOIN option_types ot ON ot.id = ov.option_type_id
                 WHERE v.is_active = TRUE
                 GROUP BY v.product_id
+              ), first_image AS (
+              SELECT DISTINCT ON (pi.product_id)
+                  pi.product_id,
+                  pi.image_url
+              FROM product_images pi
+              ORDER BY pi.product_id, pi.sort_order ASC, pi.id ASC
              )
              SELECT p.id,
                     p.name,
@@ -897,11 +923,13 @@ final class Product {
                     COALESCE(vs.price_from, p.price, 0)::bigint AS price,
                     COALESCE(vs.base_price_from, p.price, 0)::bigint AS original_price,
                     COALESCE(vs.stock_total, 0) AS stock_total,
-                    COALESCE(vs.option_text, '') AS option_text
+                          COALESCE(vs.option_text, '') AS option_text,
+                          COALESCE(fi.image_url, '') AS image
              FROM products p
              LEFT JOIN categories c ON c.id = p.category_id
              LEFT JOIN brands b ON b.id = p.brand_id
              LEFT JOIN variant_stats vs ON vs.product_id = p.id
+                      LEFT JOIN first_image fi ON fi.product_id = p.id
              WHERE p.id = :id
                AND p.is_active = TRUE
              LIMIT 1"

@@ -1388,7 +1388,7 @@ $renderProductCard = static function (array $p, bool $showSold = false) use ($is
             </div>
         </section>
 
-        <section class="section-wrap">
+        <section class="section-wrap" id="home-voucher-claim">
             <div class="section-head">
                 <div class="section-kicker">Ưu đãi thành viên</div>
                 <h2 class="section-title h3">Phiếu giảm giá dành cho bạn</h2>
