@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict zL8dJfhvBbgoCtPQLivZlSzYfo1wUuHhIW24JBVhscAN3gyYecsDEsghiFWKc10
+\restrict BfkJAJ0Uuo7Jd9ocJ7o62sJOdtyTuAesf1Rru1SukwEr3v3vgBQzTG7SVrcubuf
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
@@ -739,6 +739,45 @@ ALTER SEQUENCE public.orders_id_seq OWNED BY public.orders.id;
 
 
 --
+-- Name: password_reset_otps; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.password_reset_otps (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    email text NOT NULL,
+    otp_hash text NOT NULL,
+    attempts smallint DEFAULT 0 NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    used_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.password_reset_otps OWNER TO postgres;
+
+--
+-- Name: password_reset_otps_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.password_reset_otps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.password_reset_otps_id_seq OWNER TO postgres;
+
+--
+-- Name: password_reset_otps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.password_reset_otps_id_seq OWNED BY public.password_reset_otps.id;
+
+
+--
 -- Name: payment_methods; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -811,6 +850,41 @@ ALTER SEQUENCE public.payments_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.payments_id_seq OWNED BY public.payments.id;
+
+
+--
+-- Name: permissions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.permissions (
+    id bigint NOT NULL,
+    code text NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.permissions OWNER TO postgres;
+
+--
+-- Name: permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.permissions_id_seq OWNER TO postgres;
+
+--
+-- Name: permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.permissions_id_seq OWNED BY public.permissions.id;
 
 
 --
@@ -1102,6 +1176,21 @@ ALTER SEQUENCE public.products_id_seq OWNED BY public.products.id;
 
 
 --
+-- Name: rate_limits; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.rate_limits (
+    key text NOT NULL,
+    hits integer DEFAULT 0 NOT NULL,
+    window_start timestamp with time zone NOT NULL,
+    blocked_until timestamp with time zone,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.rate_limits OWNER TO postgres;
+
+--
 -- Name: reviews; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -1139,6 +1228,40 @@ ALTER SEQUENCE public.reviews_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.reviews_id_seq OWNED BY public.reviews.id;
+
+
+--
+-- Name: role_permissions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.role_permissions (
+    id bigint NOT NULL,
+    role_id bigint NOT NULL,
+    permission_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.role_permissions OWNER TO postgres;
+
+--
+-- Name: role_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.role_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.role_permissions_id_seq OWNER TO postgres;
+
+--
+-- Name: role_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.role_permissions_id_seq OWNED BY public.role_permissions.id;
 
 
 --
@@ -1224,6 +1347,8 @@ CREATE TABLE public.users (
     password_hash text NOT NULL,
     status text DEFAULT 'active'::text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    avatar_url text,
+    google_avatar_url text,
     CONSTRAINT users_status_check CHECK ((status = ANY (ARRAY['active'::text, 'banned'::text])))
 );
 
@@ -1299,6 +1424,8 @@ CREATE TABLE public.vouchers (
     quantity integer DEFAULT 0 NOT NULL,
     status character varying(20) DEFAULT 'active'::character varying NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    apply_category_id bigint,
+    customer_type text DEFAULT 'all'::text NOT NULL,
     CONSTRAINT vouchers_discount_amount_check CHECK ((discount_amount > 0)),
     CONSTRAINT vouchers_quantity_check CHECK ((quantity >= 0)),
     CONSTRAINT vouchers_status_check CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'disabled'::character varying, 'expired'::character varying])::text[])))
@@ -1441,6 +1568,13 @@ ALTER TABLE ONLY public.orders ALTER COLUMN id SET DEFAULT nextval('public.order
 
 
 --
+-- Name: password_reset_otps id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.password_reset_otps ALTER COLUMN id SET DEFAULT nextval('public.password_reset_otps_id_seq'::regclass);
+
+
+--
 -- Name: payment_methods id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1452,6 +1586,13 @@ ALTER TABLE ONLY public.payment_methods ALTER COLUMN id SET DEFAULT nextval('pub
 --
 
 ALTER TABLE ONLY public.payments ALTER COLUMN id SET DEFAULT nextval('public.payments_id_seq'::regclass);
+
+
+--
+-- Name: permissions id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.permissions ALTER COLUMN id SET DEFAULT nextval('public.permissions_id_seq'::regclass);
 
 
 --
@@ -1511,6 +1652,13 @@ ALTER TABLE ONLY public.reviews ALTER COLUMN id SET DEFAULT nextval('public.revi
 
 
 --
+-- Name: role_permissions id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.role_permissions ALTER COLUMN id SET DEFAULT nextval('public.role_permissions_id_seq'::regclass);
+
+
+--
 -- Name: roles id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1550,11 +1698,9 @@ ALTER TABLE ONLY public.vouchers ALTER COLUMN id SET DEFAULT nextval('public.vou
 --
 
 COPY public.banners (id, title, image, link, "position", status, created_at) FROM stdin;
-6	Build PC hieu nang cao - uu dai cuoi tuan	https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=1920&q=80	/products	home_slider	active	2026-03-14 10:15:01.02254+07
-7	Gaming gear chinh hang - gia tot moi ngay	https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=1920&q=80	/products	home_slider	active	2026-03-14 10:15:01.02254+07
-8	Nang cap SSD RAM nhanh gon - giao hang toan quoc	https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1920&q=80	/products	home_slider	active	2026-03-14 10:15:01.02254+07
-10	Sale lon phu kien gaming	https://images.unsplash.com/photo-1624705002806-5d72df19c3ad?auto=format&fit=crop&w=1200&q=80	/products	promo_banner	active	2026-03-14 10:15:01.02254+07
-11	Phụ kiện	/uploads/banners/20260314053047_fc9d3fa81a87.webp	https://chatgpt.com/c/69af899d-a1c4-8323-837f-8d30ce2a584b	home_slider	hidden	2026-03-14 12:30:47.770827+07
+7	Gaming gear chính hãng - giá tốt mỗi ngày	https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=1920&q=80	/products	home_slider	active	2026-03-14 10:15:01.02254+07
+6	Build PC hiệu năng cao - ưu đãi cuối tuần	https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=1920&q=80	/products	home_slider	active	2026-03-14 10:15:01.02254+07
+8	Nâng cấp SSD RAM nhanh gọn - giao hàng toàn quốc	https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1920&q=80	http://phukien.localhost/products?q=&category=phu-kien-setup&price_range=&sort=newest	home_slider	active	2026-03-14 10:15:01.02254+07
 \.
 
 
@@ -1581,25 +1727,25 @@ COPY public.brands (id, name, slug, created_at) FROM stdin;
 
 COPY public.categories (id, name, slug, parent_id, created_at, icon, description, status) FROM stdin;
 26	Lưu Trữ	luu-tru	\N	2026-03-14 14:30:19.908495+07	\N	\N	active
-27	Chuột Gaming	chuot-gaming	\N	2026-03-14 14:30:19.908495+07	\N	\N	active
-28	Âm Thanh	am-thanh	\N	2026-03-14 14:30:19.908495+07	\N	\N	active
-29	Sạc & Cáp	sac-cap	\N	2026-03-14 14:30:19.908495+07	\N	\N	active
-30	Phụ Kiện Setup	phu-kien-setup	\N	2026-03-14 14:30:19.908495+07	\N	\N	active
-31	Phụ kiện Apple	phu-kien-apple	\N	2026-03-14 14:35:43.340645+07	\N	\N	active
-32	Ốp lưng iPhone	op-lung-iphone	31	2026-03-14 14:35:43.340645+07	\N	\N	active
-33	Dây đeo Apple Watch	day-deo-apple-watch	31	2026-03-14 14:35:43.340645+07	\N	\N	active
-34	Cường lực & Bảo vệ	cuong-luc-bao-ve	31	2026-03-14 14:35:43.340645+07	\N	\N	active
-35	Thiết bị Pro Gaming	thiet-bi-pro-gaming	\N	2026-03-14 14:35:43.340645+07	\N	\N	active
-36	Lót chuột (Mousepad)	lot-chuot-mousepad	35	2026-03-14 14:35:43.340645+07	\N	\N	active
-37	Tay cầm chơi game	tay-cam-choi-game	35	2026-03-14 14:35:43.340645+07	\N	\N	active
-38	Phụ kiện bàn phím cơ	phu-kien-phim-co	35	2026-03-14 14:35:43.340645+07	\N	\N	active
-39	Livestream & Studio	livestream-studio	\N	2026-03-14 14:35:43.340645+07	\N	\N	active
-40	Microphone	microphone-thu-am	39	2026-03-14 14:35:43.340645+07	\N	\N	active
-41	Webcam & Camera	webcam-camera	39	2026-03-14 14:35:43.340645+07	\N	\N	active
-42	Đèn LED Decor	den-led-decor	39	2026-03-14 14:35:43.340645+07	\N	\N	active
-43	Đồ chơi công nghệ	do-choi-cong-nghe	\N	2026-03-14 14:35:43.340645+07	\N	\N	active
-44	Túi chống sốc & Balo	tui-chong-soc-balo	\N	2026-03-14 14:35:43.340645+07	\N	\N	active
-45	Thiết bị nhà thông minh	smart-home	\N	2026-03-14 14:35:43.340645+07	\N	\N	active
+45	Thiết bị nhà thông minh	smart-home	\N	2026-03-14 14:35:43.340645+07	fa-house-signal	\N	active
+44	Túi chống sốc & Balo	tui-chong-soc-balo	\N	2026-03-14 14:35:43.340645+07	fa-bag-shopping	\N	active
+43	Đồ chơi công nghệ	do-choi-cong-nghe	\N	2026-03-14 14:35:43.340645+07	fa-gamepad	\N	active
+42	Đèn LED Decor	den-led-decor	39	2026-03-14 14:35:43.340645+07	fa-lightbulb	\N	active
+41	Webcam & Camera	webcam-camera	39	2026-03-14 14:35:43.340645+07	fa-camera	\N	active
+40	Microphone	microphone-thu-am	39	2026-03-14 14:35:43.340645+07	fa-microphone-lines	\N	active
+39	Livestream & Studio	livestream-studio	\N	2026-03-14 14:35:43.340645+07	fa-video	\N	active
+38	Phụ kiện bàn phím cơ	phu-kien-phim-co	35	2026-03-14 14:35:43.340645+07	fa-keyboard	\N	active
+37	Tay cầm chơi game	tay-cam-choi-game	35	2026-03-14 14:35:43.340645+07	fa-gamepad	\N	active
+36	Lót chuột (Mousepad)	lot-chuot-mousepad	35	2026-03-14 14:35:43.340645+07	fa-computer-mouse	\N	active
+35	Thiết bị Pro Gaming	thiet-bi-pro-gaming	\N	2026-03-14 14:35:43.340645+07	fa-bolt	\N	active
+34	Cường lực & Bảo vệ	cuong-luc-bao-ve	31	2026-03-14 14:35:43.340645+07	fa-shield	\N	active
+33	Dây đeo Apple Watch	day-deo-apple-watch	31	2026-03-14 14:35:43.340645+07	fa-clock	\N	active
+32	Ốp lưng iPhone	op-lung-iphone	31	2026-03-14 14:35:43.340645+07	fa-shield	\N	active
+31	Phụ kiện Apple	phu-kien-apple	\N	2026-03-14 14:35:43.340645+07	fa-puzzle-piece	\N	active
+30	Phụ Kiện Setup	phu-kien-setup	\N	2026-03-14 14:30:19.908495+07	fa-puzzle-piece	\N	active
+29	Sạc & Cáp	sac-cap	\N	2026-03-14 14:30:19.908495+07	fa-plug	\N	active
+28	Âm Thanh	am-thanh	\N	2026-03-14 14:30:19.908495+07	fa-volume-high	\N	active
+27	Chuột Gaming	chuot-gaming	\N	2026-03-14 14:30:19.908495+07	fa-computer-mouse	\N	active
 \.
 
 
@@ -1612,6 +1758,8 @@ COPY public.contacts (id, name, email, phone, message, created_at, subject, is_h
 2	Le Van A	leva@example.com	0909123456	Can tu van phu kien may tinh	2026-03-14 11:56:23.877645+07		f	\N
 3	Le Van B	levanb@example.com	0909000111	Toi can ho tro don hang online	2026-03-14 12:00:22.429732+07	Hoi ve don hang	t	2026-03-18 13:57:24.006097+07
 4	Lê Hoàng Tú	tututu7444@gmail.com	0326754284	qewewdw	2026-03-18 13:57:41.966583+07	tuhoang7444	f	\N
+5	Lê Hoàng Tú	tututu7444@gmail.com	0326754284	dfđ	2026-03-28 13:12:10.36987+07	tuhoang7444	f	\N
+6	<script>alert(1)</script>	tututu7444@gmail.com	0326754284	êre	2026-04-05 21:15:47.84325+07	tuhoang7444	f	\N
 \.
 
 
@@ -1629,8 +1777,13 @@ COPY public.coupons (id, code, discount_type, discount_value, min_order, usage_l
 --
 
 COPY public.customer_profiles (id, user_id, full_name, phone, address_line, ward, district, city, created_at, updated_at, full_address) FROM stdin;
-1	2	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang	2026-03-10 10:08:38.352157+07	2026-03-13 19:32:15.054758+07	Kinh ông kiệt, Xã Đông Hòa, Huyện An Minh, Tỉnh Kiên Giang
 2	1	Lê Hoàng Tú	0326754283	Kinh ông kiệt	Xã Phương Giao	Huyện Võ Nhai	Tỉnh Thái Nguyên	2026-03-10 10:25:49.838839+07	2026-03-14 11:32:45.663753+07	Kinh ông kiệt, Xã Phương Giao, Huyện Võ Nhai, Tỉnh Thái Nguyên
+1	2	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang	2026-03-10 10:08:38.352157+07	2026-03-29 17:25:21.716721+07	Kinh ông kiệt, Xã Đông Hòa, Huyện An Minh, Tỉnh Kiên Giang
+13	6	Khôi Nguyễn	0792862535	660	Xã Bình Phú	Huyện Thăng Bình	Tỉnh Quảng Nam	2026-04-03 19:26:57.989339+07	2026-04-03 19:27:59.171501+07	660, Xã Bình Phú, Huyện Thăng Bình, Tỉnh Quảng Nam
+9	4	Le Hoang Tu B2306648						2026-03-29 16:27:52.965678+07	2026-04-04 14:53:28.411007+07	
+12	5	Lê Hoàng Tú	0326754284					2026-04-03 18:51:56.172462+07	2026-04-04 14:55:15.995924+07	
+8	3	Tú Lê Hoàng						2026-03-28 17:35:09.848+07	2026-04-04 14:56:00.941314+07	
+18	7	Lê Hoàng Tú	02334343433434					2026-04-05 21:12:33.207189+07	2026-04-05 21:12:33.207189+07	
 \.
 
 
@@ -1655,6 +1808,42 @@ COPY public.inventory_logs (id, product_id, quantity, type, note, created_at) FR
 14	19	2	export	Xuat kho cho don #20	2026-03-14 22:51:00.081831+07
 15	76	1	export	Xuat kho cho don #23	2026-03-14 22:58:50.082409+07
 17	27	1	export	Xuat kho cho don #25	2026-03-20 18:34:33.312521+07
+18	69	1	export	Xuat kho cho don #26	2026-03-24 10:14:37.63565+07
+19	69	1	export	Xuat kho cho don #27	2026-03-24 10:17:26.983532+07
+20	69	1	export	Xuat kho cho don #28	2026-03-27 12:25:08.381819+07
+21	69	1	export	Xuat kho cho don #29	2026-03-27 12:29:48.188438+07
+22	69	1	export	Xuat kho cho don #30	2026-03-28 10:55:10.612527+07
+23	69	1	export	Xuat kho cho don #31	2026-03-28 11:00:15.635538+07
+24	69	1	export	Xuat kho cho don #32	2026-03-28 11:05:32.472552+07
+25	69	1	import	Hoan kho do thanh toan that bai don #32	2026-03-28 11:05:37.693709+07
+26	27	1	export	Xuat kho cho don #34	2026-03-28 11:07:07.017456+07
+27	27	1	export	Xuat kho cho don #35	2026-03-28 11:07:33.003693+07
+28	27	1	export	Xuat kho cho don #36	2026-03-28 11:16:19.501062+07
+29	69	1	export	Xuat kho cho don #38	2026-03-28 11:17:21.767378+07
+30	27	1	export	Xuat kho cho don #39	2026-03-28 11:25:30.079666+07
+31	27	1	import	Hoan kho khi admin huy don #39	2026-03-28 11:26:07.061616+07
+32	69	1	export	Xuat kho cho don #40	2026-03-28 11:26:39.504336+07
+33	27	1	export	Xuat kho cho don #41	2026-03-28 12:43:56.176852+07
+34	27	1	export	Xuat kho cho don #42	2026-03-28 12:44:25.096926+07
+35	27	1	export	Xuat kho cho don #43	2026-03-28 12:45:32.284643+07
+36	27	1	import	Hoan kho khi admin huy don #43	2026-03-28 12:45:52.451185+07
+37	27	1	import	Hoan kho khi admin huy don #42	2026-03-28 12:46:07.292879+07
+38	68	1	export	Xuat kho cho don #44	2026-03-28 14:10:58.472041+07
+39	69	1	export	Xuat kho cho don #45	2026-03-28 14:35:47.035474+07
+40	69	1	export	Xuat kho cho don #46	2026-03-28 15:22:01.432134+07
+41	19	1	export	Xuat kho cho don #48	2026-03-28 15:30:54.211252+07
+42	69	1	export	Xuat kho cho don #49	2026-03-28 16:05:33.18249+07
+43	69	1	export	Xuat kho cho don #50	2026-03-28 16:17:44.310229+07
+44	69	1	export	Xuat kho cho don #51	2026-03-28 16:18:10.463439+07
+45	69	2	export	Xuat kho cho don #52	2026-03-28 16:30:51.095823+07
+46	69	2	import	Hoan kho khi khach huy don #52	2026-03-28 16:31:15.883994+07
+47	27	1	export	Xuat kho cho don #53	2026-04-03 19:28:15.142737+07
+48	70	1	export	Xuat kho cho don #54	2026-04-04 15:46:37.317256+07
+49	73	1	export	Xuat kho cho don #55	2026-04-04 15:47:57.333878+07
+50	70	1	export	Xuat kho cho don #56	2026-04-04 21:29:31.333651+07
+51	70	1	import	Hoan kho khi khach huy don #56	2026-04-04 21:31:33.681263+07
+52	69	1	export	Xuat kho cho don #58	2026-04-04 21:34:49.397979+07
+53	70	1	export	Xuat kho cho don #59	2026-04-04 22:17:23.355522+07
 \.
 
 
@@ -1708,6 +1897,36 @@ COPY public.order_addresses (id, order_id, full_name, phone, address_line, ward,
 19	20	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
 22	23	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
 24	25	Lê Hoàng Tú	0326754283	Kinh ông kiệt	Xã Phương Giao	Huyện Võ Nhai	Tỉnh Thái Nguyên
+25	26	Lê Hoàng Tú	0326754283	Kinh ông kiệt	Xã Phương Giao	Huyện Võ Nhai	Tỉnh Thái Nguyên
+26	27	Lê Hoàng Tú	0326754283	Kinh ông kiệt	Xã Phương Giao	Huyện Võ Nhai	Tỉnh Thái Nguyên
+27	28	Lê Hoàng Tú	0326754283	Kinh ông kiệt	Xã Phương Giao	Huyện Võ Nhai	Tỉnh Thái Nguyên
+28	29	Lê Hoàng Tú	0326754283	Kinh ông kiệt	Xã Phương Giao	Huyện Võ Nhai	Tỉnh Thái Nguyên
+29	30	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+30	31	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+31	32	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+33	34	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+34	35	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+35	36	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+37	38	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+38	39	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+39	40	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+40	41	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+41	42	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+42	43	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+43	44	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+44	45	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+45	46	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+47	48	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+48	49	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+49	50	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+50	51	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+51	52	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+52	53	Khôi Nguyễn	0792862535	660	Xã Bình Phú	Huyện Thăng Bình	Tỉnh Quảng Nam
+53	54	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+54	55	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
+55	56	Lê Hoàng Tú	0326754283	Kinh ông kiệt	Xã Phương Giao	Huyện Võ Nhai	Tỉnh Thái Nguyên
+57	58	Lê Hoàng Tú	0326754283	Kinh ông kiệt	Xã Phương Giao	Huyện Võ Nhai	Tỉnh Thái Nguyên
+58	59	Lê Hoàng Tú	0326754284	Kinh ông kiệt	Xã Đông Hòa	Huyện An Minh	Tỉnh Kiên Giang
 \.
 
 
@@ -1734,6 +1953,36 @@ COPY public.order_approvals (id, order_id, request_type, requested_by, requested
 16	20	approve_order	2	2026-03-14 22:51:00.081831+07	pending	\N	\N	\N
 17	23	approve_order	2	2026-03-14 22:58:50.082409+07	pending	\N	\N	\N
 18	25	approve_order	1	2026-03-20 18:34:33.312521+07	pending	\N	\N	\N
+19	26	approve_order	1	2026-03-24 10:14:37.63565+07	pending	\N	\N	\N
+20	27	approve_order	1	2026-03-24 10:17:26.983532+07	pending	\N	\N	\N
+21	28	approve_order	1	2026-03-27 12:25:08.381819+07	pending	\N	\N	\N
+22	29	approve_order	1	2026-03-27 12:29:48.188438+07	pending	\N	\N	\N
+23	30	approve_order	2	2026-03-28 10:55:10.612527+07	pending	\N	\N	\N
+24	31	approve_order	2	2026-03-28 11:00:15.635538+07	pending	\N	\N	\N
+25	32	approve_order	2	2026-03-28 11:05:32.472552+07	pending	\N	\N	\N
+26	34	approve_order	2	2026-03-28 11:07:07.017456+07	pending	\N	\N	\N
+27	35	approve_order	2	2026-03-28 11:07:33.003693+07	pending	\N	\N	\N
+28	36	approve_order	2	2026-03-28 11:16:19.501062+07	pending	\N	\N	\N
+29	38	approve_order	2	2026-03-28 11:17:21.767378+07	pending	\N	\N	\N
+30	39	approve_order	2	2026-03-28 11:25:30.079666+07	pending	\N	\N	\N
+31	40	approve_order	2	2026-03-28 11:26:39.504336+07	pending	\N	\N	\N
+32	41	approve_order	2	2026-03-28 12:43:56.176852+07	pending	\N	\N	\N
+33	42	approve_order	2	2026-03-28 12:44:25.096926+07	pending	\N	\N	\N
+34	43	approve_order	2	2026-03-28 12:45:32.284643+07	pending	\N	\N	\N
+35	44	approve_order	2	2026-03-28 14:10:58.472041+07	pending	\N	\N	\N
+36	45	approve_order	2	2026-03-28 14:35:47.035474+07	pending	\N	\N	\N
+37	46	approve_order	2	2026-03-28 15:22:01.432134+07	pending	\N	\N	\N
+38	48	approve_order	2	2026-03-28 15:30:54.211252+07	pending	\N	\N	\N
+39	49	approve_order	2	2026-03-28 16:05:33.18249+07	pending	\N	\N	\N
+40	50	approve_order	2	2026-03-28 16:17:44.310229+07	pending	\N	\N	\N
+41	51	approve_order	2	2026-03-28 16:18:10.463439+07	pending	\N	\N	\N
+42	52	approve_order	2	2026-03-28 16:30:51.095823+07	pending	\N	\N	\N
+43	53	approve_order	6	2026-04-03 19:28:15.142737+07	pending	\N	\N	\N
+44	54	approve_order	2	2026-04-04 15:46:37.317256+07	pending	\N	\N	\N
+45	55	approve_order	2	2026-04-04 15:47:57.333878+07	pending	\N	\N	\N
+46	56	approve_order	1	2026-04-04 21:29:31.333651+07	pending	\N	\N	\N
+47	58	approve_order	1	2026-04-04 21:34:49.397979+07	pending	\N	\N	\N
+48	59	approve_order	2	2026-04-04 22:17:23.355522+07	pending	\N	\N	\N
 \.
 
 
@@ -1750,6 +1999,36 @@ COPY public.order_items (id, order_id, variant_id, product_name, variant_name, s
 21	20	12	Tai nghe Sony WH-1000XM5	default	SONY-XM5-BLK	6500000	7039500	0.0000	7800000	2	15600000	2026-03-14 22:51:00.081831+07	19	6500000	7800000	0.00	0.00	20.00	2600000
 24	23	18	Thẻ định vị Apple AirTag (1 Pack)	default	1123	650000	1007500	0.3000	705250	1	705250	2026-03-14 22:58:50.082409+07	76	650000	1007500	10.00	10.00	35.00	55250
 27	25	14	Ốp lưng MagSafe iPhone 15 Pro Max	Mau: Blue	IP15PM-SIL-BLU	1450000	1350000	0.0000	1350000	1	1350000	2026-03-20 18:34:33.312521+07	27	800000	1350000	10.00	10.00	50.00	550000
+28	26	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-24 10:14:37.63565+07	69	2500000	4000000	10.00	10.00	40.00	700000
+29	27	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-24 10:17:26.983532+07	69	2500000	4000000	10.00	10.00	40.00	700000
+30	28	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-27 12:25:08.381819+07	69	2500000	4000000	10.00	10.00	40.00	700000
+31	29	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-27 12:29:48.188438+07	69	2500000	4000000	10.00	10.00	40.00	700000
+32	30	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 10:55:10.612527+07	69	2500000	4000000	10.00	10.00	40.00	700000
+33	31	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 11:00:15.635538+07	69	2500000	4000000	10.00	10.00	40.00	700000
+34	32	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 11:05:32.472552+07	69	2500000	4000000	10.00	10.00	40.00	700000
+36	34	14	Ốp lưng MagSafe iPhone 15 Pro Max	Mau: Blue	IP15PM-SIL-BLU	1450000	1350000	0.0000	1350000	1	1350000	2026-03-28 11:07:07.017456+07	27	800000	1350000	10.00	10.00	50.00	550000
+37	35	14	Ốp lưng MagSafe iPhone 15 Pro Max	Mau: Blue	IP15PM-SIL-BLU	1450000	1350000	0.0000	1350000	1	1350000	2026-03-28 11:07:33.003693+07	27	800000	1350000	10.00	10.00	50.00	550000
+38	36	14	Ốp lưng MagSafe iPhone 15 Pro Max	Mau: Blue	IP15PM-SIL-BLU	1450000	1350000	0.0000	1350000	1	1350000	2026-03-28 11:16:19.501062+07	27	800000	1350000	10.00	10.00	50.00	550000
+40	38	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 11:17:21.767378+07	69	2500000	4000000	10.00	10.00	40.00	700000
+41	39	14	Ốp lưng MagSafe iPhone 15 Pro Max	Mau: Blue	IP15PM-SIL-BLU	1450000	1350000	0.0000	1350000	1	1350000	2026-03-28 11:25:30.079666+07	27	800000	1350000	10.00	10.00	50.00	550000
+42	40	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 11:26:39.504336+07	69	2500000	4000000	10.00	10.00	40.00	700000
+43	41	14	Ốp lưng MagSafe iPhone 15 Pro Max	Mau: Blue	IP15PM-SIL-BLU	1450000	1350000	0.0000	1350000	1	1350000	2026-03-28 12:43:56.176852+07	27	800000	1350000	10.00	10.00	50.00	550000
+44	42	14	Ốp lưng MagSafe iPhone 15 Pro Max	Mau: Blue	IP15PM-SIL-BLU	1450000	1350000	0.0000	1350000	1	1350000	2026-03-28 12:44:25.096926+07	27	800000	1350000	10.00	10.00	50.00	550000
+45	43	14	Ốp lưng MagSafe iPhone 15 Pro Max	Mau: Blue	IP15PM-SIL-BLU	1450000	1350000	0.0000	1350000	1	1350000	2026-03-28 12:45:32.284643+07	27	800000	1350000	10.00	10.00	50.00	550000
+46	44	26	Sạc MagSafe không dây Apple	default	MHXH3VN/A	850000	1275000	0.2000	1020000	1	1020000	2026-03-28 14:10:58.472041+07	68	850000	1275000	10.00	10.00	30.00	170000
+47	45	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 14:35:47.035474+07	69	2500000	4000000	10.00	10.00	40.00	700000
+48	46	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 15:22:01.432134+07	69	2500000	4000000	10.00	10.00	40.00	700000
+50	48	12	Tai nghe Sony WH-1000XM5	default	SONY-XM5-BLK	6500000	7039500	0.0000	7039500	1	7039500	2026-03-28 15:30:54.211252+07	19	6500000	7039500	0.00	0.00	20.00	539500
+51	49	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 16:05:33.18249+07	69	2500000	4000000	10.00	10.00	40.00	700000
+52	50	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 16:17:44.310229+07	69	2500000	4000000	10.00	10.00	40.00	700000
+53	51	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	1	3200000	2026-03-28 16:18:10.463439+07	69	2500000	4000000	10.00	10.00	40.00	700000
+54	52	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.2000	3200000	2	6400000	2026-03-28 16:30:51.095823+07	69	2500000	4000000	10.00	10.00	40.00	1400000
+55	53	14	Ốp lưng MagSafe iPhone 15 Pro Max	Mau: Blue	IP15PM-SIL-BLU	1450000	1350000	0.0000	1350000	1	1350000	2026-04-03 19:28:15.142737+07	27	800000	1350000	10.00	10.00	50.00	550000
+56	54	24	Pin dự phòng MagSafe Anker 622 MagGo - 5000mAh	default	ANKER-622-BLK	800000	1120000	0.2000	896000	1	896000	2026-04-04 15:46:37.317256+07	70	800000	1120000	10.00	5.00	25.00	96000
+57	55	21	Tai nghe không dây Marshall Major IV Bluetooth	default	MRS-MAJOR4-BLK	2500000	3625000	0.0000	3625000	1	3625000	2026-04-04 15:47:57.333878+07	73	2500000	3625000	10.00	10.00	25.00	1125000
+58	56	24	Pin dự phòng MagSafe Anker 622 MagGo - 5000mAh	default	ANKER-622-BLK	800000	1120000	0.2000	896000	1	896000	2026-04-04 21:29:31.333651+07	70	800000	1120000	10.00	5.00	25.00	96000
+60	58	25	Đế sạc không dây 3 trong 1 Belkin BoostCharge Pro MagSafe 15W	default	BELKIN-WIZ017-WHT	2500000	4000000	0.0000	4000000	1	4000000	2026-04-04 21:34:49.397979+07	69	2500000	4000000	10.00	10.00	40.00	1500000
+61	59	24	Pin dự phòng MagSafe Anker 622 MagGo - 5000mAh	default	ANKER-622-BLK	800000	1120000	0.2000	896000	1	896000	2026-04-04 22:17:23.355522+07	70	800000	1120000	10.00	5.00	25.00	96000
 \.
 
 
@@ -1772,6 +2051,28 @@ COPY public.order_status_history (id, order_id, old_status, new_status, changed_
 12	14	done	pending_approval	2	Updated by admin dashboard	2026-03-14 20:34:52.874631+07
 13	14	pending_approval	done	2	Updated by admin dashboard	2026-03-14 20:36:12.816576+07
 14	25	pending_approval	approved	2	Updated by admin dashboard	2026-03-21 17:27:52.347836+07
+15	29	pending_approval	approved	\N	Updated by admin dashboard	2026-03-27 12:30:34.456292+07
+16	30	pending_approval	cancelled	2	Updated by admin dashboard	2026-03-28 10:59:25.049962+07
+17	32	pending_approval	cancelled	\N	Auto cancel do thanh toan VNPAY that bai	2026-03-28 11:05:37.693709+07
+18	34	pending_approval	cancelled	2	Updated by admin dashboard	2026-03-28 11:07:17.31588+07
+19	35	pending_approval	cancelled	2	Updated by admin dashboard	2026-03-28 11:07:53.730531+07
+20	36	pending_approval	cancelled	2	Updated by admin dashboard	2026-03-28 11:16:28.207801+07
+21	38	pending_approval	cancelled	2	Updated by admin dashboard	2026-03-28 11:17:32.887215+07
+22	38	cancelled	cancelled	2	Updated by admin dashboard	2026-03-28 11:24:50.630121+07
+23	39	pending_approval	cancelled	2	Admin huy don va hoan kho	2026-03-28 11:26:07.061616+07
+24	40	pending_approval	cancelled	2	Updated by admin dashboard	2026-03-28 11:39:54.189751+07
+25	39	cancelled	cancelled	2	Updated by admin dashboard	2026-03-28 12:40:08.988368+07
+26	41	pending_approval	approved	2	Updated by admin dashboard	2026-03-28 12:44:12.187861+07
+27	43	pending_approval	cancelled	2	Admin huy don va hoan kho	2026-03-28 12:45:52.451185+07
+28	42	pending_approval	cancelled	2	Admin huy don va hoan kho	2026-03-28 12:46:07.292879+07
+29	43	cancelled	pending_approval	2	Updated by admin dashboard	2026-03-28 13:01:01.276466+07
+30	44	pending_approval	done	2	Updated by admin dashboard	2026-03-28 14:11:29.883606+07
+31	45	pending_approval	approved	2	Updated by admin dashboard	2026-03-28 14:36:01.273221+07
+32	46	pending_approval	approved	\N	Updated by admin dashboard	2026-03-28 15:23:23.554451+07
+41	50	pending_approval	cancelled	2	Khách hàng hủy trong 10 phút đầu	2026-03-28 16:17:48.431299+07
+42	51	pending_approval	cancelled	2	Khách hàng hủy trong 10 phút đầu	2026-03-28 16:18:14.725396+07
+43	52	pending_approval	cancelled	2	Khách hàng hủy trong 10 phút đầu	2026-03-28 16:31:15.883994+07
+44	56	pending_approval	cancelled	1	Khách hàng hủy trong 10 phút đầu	2026-04-04 21:31:33.681263+07
 \.
 
 
@@ -1798,6 +2099,75 @@ COPY public.orders (id, user_id, status, subtotal, discount_total, shipping_fee,
 20	2	pending_approval	15600000	0	0	15600000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-14 22:51:00.081831+07	2026-03-14 22:51:00.081831+07
 23	2	pending_approval	705250	0	0	705250	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-14 22:58:50.082409+07	2026-03-14 22:58:50.082409+07
 25	1	approved	1350000	50000	0	1300000	[Phiếu MB123 - giảm 50,000đ] Phương thức thanh toán: Chuyển khoản ngân hàng	2026-03-20 18:34:33.312521+07	2026-03-21 17:27:52.347836+07
+26	1	pending_approval	3200000	0	0	3200000	Phương thức thanh toán: Chuyển khoản ngân hàng	2026-03-24 10:14:37.63565+07	2026-03-24 10:14:37.63565+07
+27	1	pending_approval	3200000	0	0	3200000	Phương thức thanh toán: Chuyển khoản ngân hàng	2026-03-24 10:17:26.983532+07	2026-03-24 10:17:26.983532+07
+28	1	pending_approval	3200000	0	0	3200000	Phương thức thanh toán: Chuyển khoản ngân hàng	2026-03-27 12:25:08.381819+07	2026-03-27 12:25:08.381819+07
+29	1	approved	3200000	0	0	3200000	Phương thức thanh toán: Chuyển khoản ngân hàng	2026-03-27 12:29:48.188438+07	2026-03-27 12:30:34.456292+07
+30	2	cancelled	3200000	0	0	3200000	Phương thức thanh toán: Chuyển khoản ngân hàng	2026-03-28 10:55:10.612527+07	2026-03-28 10:59:25.049962+07
+31	2	pending_approval	3200000	0	0	3200000	Phương thức thanh toán: Chuyển khoản ngân hàng	2026-03-28 11:00:15.635538+07	2026-03-28 11:00:15.635538+07
+32	2	cancelled	3200000	0	0	3200000	Phương thức thanh toán: Chuyển khoản ngân hàng	2026-03-28 11:05:32.472552+07	2026-03-28 11:05:37.693709+07
+34	2	cancelled	1350000	0	0	1350000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 11:07:07.017456+07	2026-03-28 11:07:17.31588+07
+35	2	cancelled	1350000	0	0	1350000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 11:07:33.003693+07	2026-03-28 11:07:53.730531+07
+36	2	cancelled	1350000	0	0	1350000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 11:16:19.501062+07	2026-03-28 11:16:28.207801+07
+38	2	cancelled	3200000	0	0	3200000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 11:17:21.767378+07	2026-03-28 11:24:50.630121+07
+40	2	cancelled	3200000	0	0	3200000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 11:26:39.504336+07	2026-03-28 11:39:54.189751+07
+39	2	cancelled	1350000	0	0	1350000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 11:25:30.079666+07	2026-03-28 12:40:08.988368+07
+41	2	approved	1350000	0	0	1350000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 12:43:56.176852+07	2026-03-28 12:44:12.187861+07
+42	2	cancelled	1350000	0	0	1350000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 12:44:25.096926+07	2026-03-28 12:46:07.292879+07
+43	2	pending_approval	1350000	0	0	1350000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 12:45:32.284643+07	2026-03-28 13:01:01.276466+07
+44	2	done	1020000	0	0	1020000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 14:10:58.472041+07	2026-03-28 14:11:29.883606+07
+45	2	approved	3200000	0	0	3200000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 14:35:47.035474+07	2026-03-28 14:36:01.273221+07
+46	2	approved	3200000	0	0	3200000	Phương thức thanh toán: Chuyển khoản ngân hàng	2026-03-28 15:22:01.432134+07	2026-03-28 15:23:23.554451+07
+48	2	pending_approval	7039500	0	0	7039500	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 15:30:54.211252+07	2026-03-28 15:30:54.211252+07
+49	2	pending_approval	3200000	0	0	3200000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 16:05:33.18249+07	2026-03-28 16:05:33.18249+07
+50	2	cancelled	3200000	0	0	3200000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 16:17:44.310229+07	2026-03-28 16:17:48.431299+07
+51	2	cancelled	3200000	0	0	3200000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 16:18:10.463439+07	2026-03-28 16:18:14.725396+07
+52	2	cancelled	6400000	0	0	6400000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-03-28 16:30:51.095823+07	2026-03-28 16:31:15.883994+07
+53	6	pending_approval	1350000	0	0	1350000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-04-03 19:28:15.142737+07	2026-04-03 19:28:15.142737+07
+54	2	pending_approval	896000	0	0	896000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-04-04 15:46:37.317256+07	2026-04-04 15:46:37.317256+07
+55	2	pending_approval	3625000	50000	0	3575000	[Phiếu VB67 - giảm 50,000đ] Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-04-04 15:47:57.333878+07	2026-04-04 15:47:57.333878+07
+56	1	cancelled	896000	50000	0	846000	[Phiếu TUHOANG7444 - giảm 50,000đ] Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-04-04 21:29:31.333651+07	2026-04-04 21:31:33.681263+07
+58	1	pending_approval	4000000	0	0	4000000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-04-04 21:34:49.397979+07	2026-04-04 21:34:49.397979+07
+59	2	pending_approval	896000	0	0	896000	Phương thức thanh toán: Thanh toán khi nhận hàng (COD)	2026-04-04 22:17:23.355522+07	2026-04-04 22:17:23.355522+07
+\.
+
+
+--
+-- Data for Name: password_reset_otps; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.password_reset_otps (id, user_id, email, otp_hash, attempts, expires_at, used_at, created_at) FROM stdin;
+1	1	tututu7444@gmail.com	$2y$12$DKTwWpAQyLcTVYBU/kbbR.uJl6yX3otMdWnFIN.7FlGUM6H/amOlW	0	2026-04-03 18:52:10.443029+07	2026-04-03 18:42:16.356371+07	2026-04-03 18:42:10.443029+07
+2	1	tututu7444@gmail.com	$2y$12$tpQ8i89igbXfxuApW.JR2ODVrHtmYI2SRCwfJTy9OuWy2ppKCFHJK	0	2026-04-03 18:52:16.360976+07	2026-04-03 18:42:29.961586+07	2026-04-03 18:42:16.360976+07
+3	1	tututu7444@gmail.com	$2y$12$jUWXBIBGlNSE6RS4ceWM..66eAmeWcNudQQ8pQgvEdsPY3VZB6ITa	0	2026-04-03 18:52:29.973235+07	2026-04-03 18:49:52.117712+07	2026-04-03 18:42:29.973235+07
+4	1	tututu7444@gmail.com	$2y$12$KtCwv6f55WIaX0PTSbePleHKLGATHG6.QAvXoMG/dIFy9C1IOTCtS	0	2026-04-03 18:59:52.132553+07	2026-04-03 18:50:01.491907+07	2026-04-03 18:49:52.132553+07
+5	1	tututu7444@gmail.com	$2y$12$GTOUgTQVr3cF0f9ROEN/3.zyWhIsjy67o.eGsB9Fxog/dxzbsT96C	0	2026-04-03 19:00:01.504449+07	2026-04-03 19:01:38.218127+07	2026-04-03 18:50:01.504449+07
+7	1	tututu7444@gmail.com	$2y$12$y5YgnrnwQPHVI9Dyvvuby.YW4bXOTc3sjpkBWHIxvtB/RORg3GvVS	0	2026-04-03 19:11:38.221167+07	2026-04-03 19:02:18.287522+07	2026-04-03 19:01:38.221167+07
+8	1	tututu7444@gmail.com	$2y$12$qprZmQ8W0GIFFwt/RAICZOLxjDxvdpY5JFSF3z72b25QhTLSTa2oC	0	2026-04-03 19:12:18.290063+07	2026-04-03 19:13:41.550664+07	2026-04-03 19:02:18.290063+07
+9	1	tututu7444@gmail.com	$2y$12$3Uz3elr7iJDibcl6lopx5eGtMF4POWjY6Nx4VmPCqItwL4gn/y85e	0	2026-04-03 19:23:41.557239+07	2026-04-03 19:13:53.137467+07	2026-04-03 19:13:41.557239+07
+10	1	tututu7444@gmail.com	$2y$12$tM5oTKSbXyc6adZYfdMijO.WbXWPIKtRs32GDnVQOCYjnooxmutfS	0	2026-04-03 19:23:53.149513+07	2026-04-03 19:15:02.606974+07	2026-04-03 19:13:53.149513+07
+11	1	tututu7444@gmail.com	$2y$12$yNPA4j355nubWzxiK13fX.6JaWRS/JExy2PTJpC/Y8Vxbt16zqfP.	0	2026-04-03 19:26:13.084139+07	2026-04-03 19:16:20.666392+07	2026-04-03 19:16:13.084139+07
+6	5	tututu@gmail.com	$2y$12$KAPn9DpQuYJFJWiDAQ78z.kLTO.cD5/HOYaeLN0DIGDr6P.SwAvT2	0	2026-04-03 19:02:04.134072+07	2026-04-03 19:16:31.82005+07	2026-04-03 18:52:04.134072+07
+13	5	tututu@gmail.com	$2y$12$PQIkG8q.6LGUajwMh6fsSuObvRtFb9ttzaNuc0mHzvsZSMwt0PdTK	0	2026-04-03 19:26:31.832512+07	\N	2026-04-03 19:16:31.832512+07
+12	1	tututu7444@gmail.com	$2y$12$SYPDJ6EGkObs4BrCbk81K.jBrfz3hP17j9zsgfzXvMNflU4QelXIe	0	2026-04-03 19:26:20.678745+07	2026-04-03 19:16:46.269237+07	2026-04-03 19:16:20.678745+07
+14	1	tututu7444@gmail.com	$2y$12$gNlouAlzt7etkSV3jQj05.qMYDrlqBu.aTuPbeLs5kWs4iP.OVEEG	0	2026-04-03 19:26:46.272236+07	2026-04-03 19:19:21.510207+07	2026-04-03 19:16:46.272236+07
+15	1	tututu7444@gmail.com	$2y$12$mBcwd/yJpkYrEGZR2p4zSeDLzkicZ4uqbWeJMOWrhlQdbmKulIuti	0	2026-04-03 19:29:21.511365+07	2026-04-03 19:20:31.66238+07	2026-04-03 19:19:21.511365+07
+16	1	tututu7444@gmail.com	$2y$12$7tLVADOqpn3ajhhM/3Fe5e.mWbTBmm3twJJCTzf367NUAXbdFnZwG	0	2026-04-03 19:30:31.663758+07	2026-04-03 19:24:28.003548+07	2026-04-03 19:20:31.663758+07
+18	3	tub2306648@gmail.com	$2y$12$XzbsWKcGQ14sCHNgw3Q2v.0ez.x.rtLJ9z1nDn9qUKOTZYqVWrLGe	0	2026-04-03 19:40:53.599981+07	2026-04-03 19:43:31.229998+07	2026-04-03 19:30:53.599981+07
+17	1	tututu7444@gmail.com	$2y$12$I3TchCXMlRHQIACLhnMb8.Cl2D1rzAH2Jb3ZyUqndJYzm3ugNe5MK	0	2026-04-03 19:34:28.004737+07	2026-04-04 13:41:09.727906+07	2026-04-03 19:24:28.004737+07
+20	1	tututu7444@gmail.com	$2y$12$Zuct4zKhbIts6Vr8oyjyVe6X5EweA7FmuE2crwC25PvFiIAmoFbP6	0	2026-04-04 13:51:09.743917+07	2026-04-04 13:43:14.526105+07	2026-04-04 13:41:09.743917+07
+21	1	tututu7444@gmail.com	$2y$12$MmUkfEJ1BagL7gumR0.tOuI7/lZxVtK3OoDQ0IwoPVbY4QO/eHGJW	0	2026-04-04 13:53:53.539358+07	2026-04-04 13:49:05.716472+07	2026-04-04 13:43:53.539358+07
+22	1	tututu7444@gmail.com	$2y$12$yZkBwiwNs0L.S0auOCr./.D55SupqMFWzIOzns4oj7dp9k6rBOttu	0	2026-04-04 13:59:05.727879+07	2026-04-04 13:55:55.318216+07	2026-04-04 13:49:05.727879+07
+23	1	tututu7444@gmail.com	$2y$12$5e5qYi2bLoMObecO02NESu1KfnsCMcki6L12KPPY76JNhHeh9PHx2	0	2026-04-04 14:05:55.319383+07	2026-04-04 13:57:37.050162+07	2026-04-04 13:55:55.319383+07
+24	1	tututu7444@gmail.com	$2y$12$Hp18Egnl7h3EaUNMleAnd.TU6UhKecdgqx/yzVw7DQYV91ewooXsa	0	2026-04-04 14:07:37.060924+07	2026-04-04 14:03:09.594282+07	2026-04-04 13:57:37.060924+07
+19	3	tub2306648@gmail.com	$2y$12$TwwxVKqtc62ynwh94ZMo7eMlaj7YcL4NRXXz/kDyNHE/a7.OIO07i	0	2026-04-03 19:53:31.231029+07	2026-04-04 14:05:04.034071+07	2026-04-03 19:43:31.231029+07
+26	3	tub2306648@gmail.com	$2y$12$3FeVtwc3fdzymZFyZYHwMeoi2CdidLfhePtg0UIXj4QMbXfCXinyi	0	2026-04-04 14:15:04.045115+07	2026-04-04 14:07:55.000345+07	2026-04-04 14:05:04.045115+07
+27	3	tub2306648@gmail.com	$2y$12$8thlUSYzIgxlK0sw8dMYFOjitbGiGvPPxkVsRIkNN0dcn.4FFj0gO	0	2026-04-04 14:17:55.012354+07	2026-04-04 14:09:00.822471+07	2026-04-04 14:07:55.012354+07
+28	3	tub2306648@gmail.com	$2y$12$4UpHajd.XJddy5v4cOWedOYHHKZgIzCLfo/keYbuYg66KV0Bx563K	0	2026-04-04 14:19:00.83478+07	\N	2026-04-04 14:09:00.83478+07
+25	1	tututu7444@gmail.com	$2y$12$kPreOUZe8WpRkhw7igUU/u7M97gjux9ZLD5HsVrcymTOnC9HfnF0q	0	2026-04-04 14:13:09.605293+07	2026-04-04 14:09:25.793641+07	2026-04-04 14:03:09.605293+07
+29	1	tututu7444@gmail.com	$2y$12$hYvPBV3gthOVNEhcduLZD.wNkffFG9A.XIpCCUu4v.DCoNESUXzH.	0	2026-04-04 14:19:25.804153+07	2026-04-04 14:18:40.073493+07	2026-04-04 14:09:25.804153+07
+30	1	tututu7444@gmail.com	$2y$12$k6FFQP8gra6jRnS/sZmWueKigwbSSBoNmNLlV1/Qu.EfuIdGonGm2	0	2026-04-04 14:28:40.075769+07	2026-04-04 14:22:59.533551+07	2026-04-04 14:18:40.075769+07
+31	1	tututu7444@gmail.com	$2y$12$GY4S2ORO005HfOFc7jbPNeSxRTAvtlOmi96S/lYSMAmKJjY9ZpsuG	3	2026-04-04 14:32:59.544705+07	2026-04-04 14:26:18.830869+07	2026-04-04 14:22:59.544705+07
 \.
 
 
@@ -1816,6 +2186,59 @@ COPY public.payment_methods (id, code, name, is_active) FROM stdin;
 --
 
 COPY public.payments (id, order_id, method_id, amount, status, paid_at, created_at) FROM stdin;
+1	26	2	3200000	pending	\N	2026-03-24 10:14:37.717384+07
+2	27	2	3200000	failed	\N	2026-03-24 10:17:27.016858+07
+3	28	2	3200000	failed	\N	2026-03-27 12:25:08.436465+07
+4	29	2	3200000	paid	2026-03-27 12:30:34.453533+07	2026-03-27 12:29:48.218418+07
+5	30	2	3200000	failed	\N	2026-03-28 10:55:10.661641+07
+6	31	2	3200000	failed	\N	2026-03-28 11:00:15.661004+07
+7	32	2	3200000	failed	\N	2026-03-28 11:05:32.498722+07
+8	34	1	1350000	pending	\N	2026-03-28 11:07:07.036721+07
+9	35	1	1350000	pending	\N	2026-03-28 11:07:33.025651+07
+10	36	1	1350000	pending	\N	2026-03-28 11:16:19.523137+07
+11	38	1	3200000	pending	\N	2026-03-28 11:17:21.787069+07
+12	39	1	1350000	pending	\N	2026-03-28 11:25:30.109623+07
+13	40	1	3200000	pending	\N	2026-03-28 11:26:39.530609+07
+14	41	1	1350000	pending	\N	2026-03-28 12:43:56.202742+07
+15	42	1	1350000	pending	\N	2026-03-28 12:44:25.122985+07
+16	43	1	1350000	pending	\N	2026-03-28 12:45:32.309021+07
+17	44	1	1020000	pending	\N	2026-03-28 14:10:58.49921+07
+18	45	1	3200000	pending	\N	2026-03-28 14:35:47.061705+07
+19	46	2	3200000	paid	2026-03-28 15:23:23.551851+07	2026-03-28 15:22:01.474129+07
+20	48	1	7039500	pending	\N	2026-03-28 15:30:54.238067+07
+21	49	1	3200000	pending	\N	2026-03-28 16:05:33.242927+07
+22	50	1	3200000	pending	\N	2026-03-28 16:17:44.351379+07
+23	51	1	3200000	pending	\N	2026-03-28 16:18:10.489156+07
+24	52	1	6400000	pending	\N	2026-03-28 16:30:51.121217+07
+25	53	1	1350000	pending	\N	2026-04-03 19:28:15.200875+07
+26	54	1	896000	pending	\N	2026-04-04 15:46:37.370707+07
+27	55	1	3625000	pending	\N	2026-04-04 15:47:57.384051+07
+28	56	1	896000	pending	\N	2026-04-04 21:29:31.375748+07
+29	58	1	4000000	pending	\N	2026-04-04 21:34:49.424809+07
+30	59	1	896000	pending	\N	2026-04-04 22:17:23.380867+07
+\.
+
+
+--
+-- Data for Name: permissions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.permissions (id, code, name, created_at) FROM stdin;
+1	admin.dashboard	Dashboard	2026-04-04 14:50:59.310111+07
+2	admin.products	Quản lý sản phẩm	2026-04-04 14:50:59.314554+07
+3	admin.orders	Quản lý đơn hàng	2026-04-04 14:50:59.315468+07
+4	admin.users	Quản lý người dùng	2026-04-04 14:50:59.316025+07
+5	admin.product_discounts	Giảm giá sản phẩm	2026-04-04 14:50:59.31644+07
+6	admin.categories	Quản lý danh mục	2026-04-04 14:50:59.317053+07
+7	admin.vouchers	Quản lý phiếu giảm giá	2026-04-04 14:50:59.317595+07
+8	admin.inventory	Quản lý tồn kho	2026-04-04 14:50:59.318064+07
+9	admin.reviews	Quản lý đánh giá	2026-04-04 14:50:59.318499+07
+10	admin.banners	Quản lý banner	2026-04-04 14:50:59.318904+07
+11	admin.posts	Quản lý bài viết	2026-04-04 14:50:59.319281+07
+12	admin.contacts	Quản lý liên hệ	2026-04-04 14:50:59.319667+07
+13	admin.newsletters	Nhận ưu đãi	2026-04-04 14:50:59.320025+07
+14	admin.reports	Xuất báo cáo	2026-04-04 14:50:59.320387+07
+15	admin.roles	Phân quyền quản trị	2026-04-04 14:50:59.320793+07
 \.
 
 
@@ -1824,11 +2247,14 @@ COPY public.payments (id, order_id, method_id, amount, status, paid_at, created_
 --
 
 COPY public.post_related_products (id, post_id, product_id, sort_order, created_at) FROM stdin;
-1	2	75	1	2026-03-18 13:42:36.295641+07
-2	2	32	2	2026-03-18 13:42:36.295641+07
-3	2	31	3	2026-03-18 13:42:36.295641+07
-4	2	27	4	2026-03-18 13:42:36.295641+07
-5	2	23	5	2026-03-18 13:42:36.295641+07
+14	2	75	1	2026-03-28 13:22:12.608368+07
+15	2	32	2	2026-03-28 13:22:12.608368+07
+16	2	31	3	2026-03-28 13:22:12.608368+07
+17	2	27	4	2026-03-28 13:22:12.608368+07
+18	2	23	5	2026-03-28 13:22:12.608368+07
+19	1	74	1	2026-03-28 13:22:38.862981+07
+20	1	56	2	2026-03-28 13:22:38.862981+07
+21	1	45	3	2026-03-28 13:22:38.862981+07
 \.
 
 
@@ -1837,9 +2263,9 @@ COPY public.post_related_products (id, post_id, product_id, sort_order, created_
 --
 
 COPY public.posts (id, title, slug, excerpt, content, cover_image, status, published_at, created_at, updated_at) FROM stdin;
-1	Cach chon PSU an toan cho dan PC gaming	cach-chon-psu-an-toan-cho-dan-pc-gaming	Tong hop tieu chi chon bo nguon on dinh, du cong suat va toi uu cho nang cap ve sau.	Noi dung chi tiet dang cap nhat. Bai viet huong dan chon PSU theo cong suat va chat luong linh kien.	https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=1200&q=80	published	2026-03-14 10:15:01.02254+07	2026-03-14 10:15:01.02254+07	2026-03-14 10:15:01.02254+07
 3	Tối ưu nhiệt độ case để bộ máy hoạt động bền bỉ	toi-uu-nhiet-do-case-de-bo-may-ben-bi	Hướng dẫn chi tiết cách tối ưu luồng gió, sắp xếp quạt và quản lý dây để giảm nhiệt độ CPU, GPU, giúp máy tính hoạt động ổn định và bền bỉ hơn.	📌 Tại sao cần tối ưu nhiệt độ case?\r\n\r\nNếu bạn từng thấy máy tính bị nóng lên khi chơi game hoặc làm việc nặng, đó là điều bình thường. Nhưng nếu nhiệt độ quá cao trong thời gian dài, máy sẽ tự giảm hiệu năng để bảo vệ linh kiện. Điều này khiến máy chạy chậm hơn và có thể làm giảm tuổi thọ phần cứng.\r\n\r\nNói đơn giản: máy càng mát → chạy càng ổn định → dùng càng lâu.\r\n\r\n🌬️ Hiểu đơn giản về luồng gió trong case\r\n\r\nHãy tưởng tượng bên trong case giống như một căn phòng kín. Nếu không có không khí lưu thông, nhiệt sẽ bị giữ lại và ngày càng nóng lên.\r\n\r\nNguyên tắc cơ bản:\r\n\r\nHút không khí mát từ bên ngoài vào\r\n\r\nĐẩy khí nóng ra ngoài\r\n\r\nLuồng gió lý tưởng thường đi theo hướng:\r\n➡️ Trước → Sau\r\n⬆️ Dưới → Trên\r\n\r\n🌀 Bố trí quạt sao cho hợp lý\r\n\r\nBạn không cần quá nhiều quạt, chỉ cần đặt đúng vị trí là đã rất hiệu quả.\r\n\r\nGợi ý phổ biến:\r\n\r\n🔹 2–3 quạt phía trước → hút gió vào\r\n\r\n🔹 1 quạt phía sau → đẩy khí nóng ra\r\n\r\n🔹 1–2 quạt phía trên → thoát nhiệt\r\n\r\n👉 Đây là setup “chuẩn quốc dân”, phù hợp với hầu hết các bộ máy.\r\n\r\n🔧 Dọn gọn dây cáp – nhỏ nhưng rất quan trọng\r\n\r\nDây cáp lộn xộn sẽ cản luồng gió và làm máy nóng hơn.\r\n\r\nBạn nên:\r\n\r\nBuộc gọn dây bằng dây rút\r\n\r\nĐi dây ra phía sau mainboard\r\n\r\nGiữ khu vực trước quạt thông thoáng\r\n\r\n✨ Một bộ máy gọn gàng = đẹp + mát hơn rõ rệt.\r\n\r\n❄️ Chọn quạt và tản nhiệt phù hợp\r\n\r\nNếu bạn dùng máy để chơi game hoặc làm việc nặng, đừng bỏ qua phần này.\r\n\r\nMột vài lưu ý:\r\n\r\nChọn quạt có lưu lượng gió tốt\r\n\r\nƯu tiên quạt có thể điều chỉnh tốc độ\r\n\r\nDùng tản nhiệt CPU phù hợp với nhu cầu\r\n\r\n👉 Không cần quá đắt, chỉ cần đúng và đủ là được.\r\n\r\n🧼 Vệ sinh định kỳ\r\n\r\nBụi bẩn là “kẻ thù thầm lặng” của hệ thống tản nhiệt.\r\n\r\nBạn nên:\r\n\r\nVệ sinh máy mỗi 1–2 tháng\r\n\r\nLàm sạch quạt và lưới lọc bụi\r\n\r\nThay keo tản nhiệt nếu dùng lâu\r\n\r\n💡 Chỉ cần vệ sinh thôi cũng có thể giảm nhiệt đáng kể.\r\n\r\n💡 Một vài mẹo nhỏ nhưng hữu ích\r\n\r\nKhông đặt case sát tường\r\n\r\nĐặt máy ở nơi thoáng mát\r\n\r\nChọn case có mặt trước dạng lưới\r\n\r\nĐiều chỉnh tốc độ quạt nếu cần\r\n\r\n✅ Kết luận\r\n\r\nTối ưu nhiệt độ case không hề khó. Chỉ cần bố trí quạt hợp lý, giữ dây gọn gàng và vệ sinh định kỳ, bạn đã có thể giúp máy mát hơn rất nhiều.\r\n\r\n🔥 Một bộ máy mát mẻ sẽ:\r\n\r\nChạy ổn định hơn\r\n\r\nÍt lỗi hơn\r\n\r\nBền bỉ theo thời gian	https://images.unsplash.com/photo-1593642634524-b40b5baae6bb?auto=format&fit=crop&w=1200&q=80	published	2026-03-14 10:15:00+07	2026-03-14 10:15:01.02254+07	2026-03-18 13:33:19.70446+07
-2	SSD NVMe va SATA: Chon loai nao cho nhu cau cua ban	ssd-nvme-va-sata-chon-loai-nao	So sanh toc do, gia va trai nghiem thuc te giua SSD NVMe va SSD SATA.	Noi dung chi tiet dang cap nhat. Bai viet giup ban chon dung SSD theo ngan sach va muc dich su dung.	https://images.unsplash.com/photo-1591489378430-ef2f4c626b35?auto=format&fit=crop&w=1200&q=80	published	2026-03-14 10:15:00+07	2026-03-14 10:15:01.02254+07	2026-03-18 13:42:36.291686+07
+2	SSD NVMe và SATA: Chọn loại nào cho nhu cầu của bạn?	ssd-nvme-va-sata-chon-loai-nao	SSD NVMe nhanh vượt trội, phù hợp gaming và tác vụ nặng; trong khi SSD SATA chậm hơn nhưng giá rẻ và đủ dùng cho nhu cầu cơ bản.	Khi nâng cấp hoặc build PC, việc lựa chọn giữa SSD NVMe và SSD SATA ảnh hưởng trực tiếp đến hiệu năng tổng thể của hệ thống. Cả hai đều là ổ cứng thể rắn giúp tăng tốc độ xử lý so với HDD truyền thống, nhưng sự khác biệt về công nghệ khiến trải nghiệm sử dụng không giống nhau.\r\n\r\nSSD SATA là chuẩn phổ biến lâu đời, sử dụng giao tiếp SATA III với tốc độ tối đa khoảng 500–550MB/s. Với mức hiệu năng này, SATA đã đủ để đáp ứng tốt các nhu cầu như học tập, làm việc văn phòng, lướt web hay chạy các phần mềm cơ bản. Ngoài ra, giá thành của SSD SATA khá rẻ, dễ tiếp cận và tương thích với hầu hết các dòng máy, kể cả máy cũ.\r\n\r\nTrong khi đó, SSD NVMe sử dụng giao tiếp PCIe hiện đại, mang lại tốc độ vượt trội, có thể nhanh gấp nhiều lần so với SATA. Điều này giúp thời gian khởi động máy, mở ứng dụng hay load game được rút ngắn đáng kể. Đặc biệt, với các tác vụ nặng như chỉnh sửa video, thiết kế đồ họa, lập trình hoặc chơi game cấu hình cao, NVMe thể hiện rõ sự khác biệt về hiệu năng.\r\n\r\nTuy nhiên, không phải ai cũng cần đến tốc độ cao của NVMe. Với người dùng phổ thông, sự khác biệt giữa SATA và NVMe trong các tác vụ nhẹ là không quá lớn. Vì vậy, việc lựa chọn nên dựa vào nhu cầu thực tế và ngân sách. Nếu bạn muốn một hệ thống mạnh mẽ, tối ưu hiệu suất lâu dài thì NVMe là lựa chọn đáng đầu tư. Ngược lại, nếu chỉ cần một giải pháp ổn định, tiết kiệm chi phí thì SATA vẫn hoàn toàn đáp ứng tốt.\r\n\r\nNgoài ra, một giải pháp được nhiều người dùng lựa chọn là kết hợp cả hai: sử dụng NVMe để cài hệ điều hành và phần mềm quan trọng, trong khi dùng SATA để lưu trữ dữ liệu. Cách này giúp tận dụng được tốc độ của NVMe và dung lượng giá rẻ của SATA.	https://images.unsplash.com/photo-1591489378430-ef2f4c626b35?auto=format&fit=crop&w=1200&q=80	published	2026-03-14 10:15:00+07	2026-03-14 10:15:01.02254+07	2026-03-28 13:22:12.594761+07
+1	Cách chọn PSU an toàn cho dân PC gaming	cach-chon-psu-an-toan-cho-dan-pc-gaming	Chọn PSU phù hợp giúp PC gaming hoạt động ổn định, cần đủ công suất và nên dư 20–30% để đảm bảo an toàn.	Khi xây dựng một bộ PC gaming, nhiều người thường tập trung vào CPU hay GPU mà quên mất rằng bộ nguồn (PSU) chính là “trái tim” cung cấp năng lượng cho toàn bộ hệ thống. Một PSU phù hợp không chỉ giúp máy hoạt động ổn định mà còn bảo vệ các linh kiện đắt tiền khỏi rủi ro hư hỏng.\r\n\r\nTrước tiên, bạn cần xác định công suất phù hợp với cấu hình máy. Công suất PSU phụ thuộc chủ yếu vào mức tiêu thụ điện của CPU và GPU. Bạn có thể tham khảo các công cụ tính công suất online hoặc cộng tổng công suất linh kiện rồi chọn PSU có công suất cao hơn khoảng 20–30% để đảm bảo dư tải. Việc này giúp nguồn hoạt động mát hơn, ổn định hơn và kéo dài tuổi thọ.\r\n\r\nTiếp theo, hãy chú ý đến chứng nhận hiệu suất 80 Plus. Các mức như Bronze, Silver, Gold hay Platinum thể hiện hiệu suất chuyển đổi điện năng của PSU. PSU có hiệu suất cao sẽ tiết kiệm điện, giảm nhiệt lượng tỏa ra và vận hành êm ái hơn. Đối với PC gaming, tối thiểu bạn nên chọn 80 Plus Bronze, còn nếu có điều kiện thì Gold là lựa chọn rất hợp lý.\r\n\r\nMột yếu tố quan trọng khác là thương hiệu và chất lượng linh kiện bên trong PSU. Nên ưu tiên các hãng uy tín như Corsair, Cooler Master, Seasonic,... vì họ thường sử dụng linh kiện tốt và có chế độ bảo hành rõ ràng. Ngoài ra, PSU chất lượng sẽ được trang bị các tính năng bảo vệ như chống quá áp (OVP), quá dòng (OCP), quá nhiệt (OTP) và ngắn mạch (SCP), giúp bảo vệ toàn bộ hệ thống khi có sự cố điện.\r\n\r\nBên cạnh đó, bạn cũng nên cân nhắc về thiết kế dây cáp. PSU dạng non-modular có dây cố định toàn bộ, trong khi semi-modular hoặc full-modular cho phép tháo rời dây không cần thiết. Với case nhỏ hoặc cần tối ưu luồng gió, PSU modular sẽ giúp việc đi dây gọn gàng và đẹp mắt hơn.\r\n\r\nCuối cùng, tuyệt đối không nên ham rẻ mà chọn các loại PSU không rõ nguồn gốc. Những bộ nguồn kém chất lượng có thể gây sụt áp, cháy nổ hoặc làm hỏng các linh kiện quan trọng như mainboard hay card đồ họa.	https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=1200&q=80	published	2026-03-14 10:15:00+07	2026-03-14 10:15:01.02254+07	2026-03-28 13:22:38.850188+07
 \.
 
 
@@ -1857,9 +2283,9 @@ COPY public.pricing_settings (id, rent_pct, labor_pct, tax_pct, other_pct, updat
 --
 
 COPY public.product_discount_campaigns (id, product_id, discount_percent, start_at, end_at, status, created_at) FROM stdin;
-1	19	6	2026-03-14 15:21:00	2026-03-21 15:21:00	active	2026-03-14 22:22:25.85013
-2	76	30	2026-03-14 15:22:00	2026-03-21 15:22:00	active	2026-03-14 22:22:46.485636
 4	69	20	2026-03-22 07:32:00	2026-03-29 07:32:00	active	2026-03-22 14:32:32.397895
+6	70	20	2026-03-29 10:15:00	2026-04-05 10:15:00	active	2026-03-29 17:16:16.055245
+7	70	20	2026-04-05 06:34:00	2026-04-12 06:34:00	active	2026-04-05 13:34:59.105906
 \.
 
 
@@ -1917,18 +2343,18 @@ COPY public.product_variants (id, product_id, sku, combination_key, base_price, 
 15	27	IP15PM-SIL-BLK	Mau: Black	1450000	1350000	30	t	2026-03-14 14:56:54.165782+07
 16	31	DESKMAT-GRY	Mau: Xam	350000	290000	100	t	2026-03-14 14:56:54.165782+07
 17	32	XBOX-CORE-WHT	Mau: White	3550000	3250000	10	t	2026-03-14 14:56:54.165782+07
-12	19	SONY-XM5-BLK	default	6500000	7039500	2	t	2026-03-14 14:30:19.908495+07
 19	75	BUBM-DL-GRY	default	180000	252000	30	t	2026-03-15 19:46:29.675984+07
 20	74	TOMTOC-A13-GRY	default	650000	1105000	25	t	2026-03-18 18:16:39.858313+07
-21	73	MRS-MAJOR4-BLK	default	2500000	3625000	5	t	2026-03-18 18:26:53.407151+07
 22	72	JBL-GO3-BLU	default	750000	975000	50	t	2026-03-18 18:29:05.299049+07
 23	71	APPLE-APP2-USBC	default	4000000	5600000	20	t	2026-03-18 18:33:48.654706+07
-24	70	ANKER-622-BLK	default	800000	1120000	20	t	2026-03-18 18:46:02.080622+07
-25	69	BELKIN-WIZ017-WHT	default	2500000	4000000	15	t	2026-03-18 18:48:58.435206+07
-26	68	MHXH3VN/A	default	850000	1275000	7	t	2026-03-18 18:51:36.940639+07
 27	67	BSS-CSC-100W-2M	default	150000	210000	10	t	2026-03-18 18:55:16.363482+07
 18	76	1123	default	650000	1007500	0	t	2026-03-14 15:29:37.881807+07
-14	27	IP15PM-SIL-BLU	Mau: Blue	1450000	1350000	44	t	2026-03-14 14:56:54.165782+07
+26	68	MHXH3VN/A	default	850000	1275000	6	t	2026-03-18 18:51:36.940639+07
+12	19	SONY-XM5-BLK	default	6500000	7039500	1	t	2026-03-14 14:30:19.908495+07
+14	27	IP15PM-SIL-BLU	Mau: Blue	1450000	1350000	39	t	2026-03-14 14:56:54.165782+07
+21	73	MRS-MAJOR4-BLK	default	2500000	3625000	4	t	2026-03-18 18:26:53.407151+07
+25	69	BELKIN-WIZ017-WHT	default	2500000	4000000	1	t	2026-03-18 18:48:58.435206+07
+24	70	ANKER-622-BLK	default	800000	1120000	18	t	2026-03-18 18:46:02.080622+07
 \.
 
 
@@ -2001,11 +2427,57 @@ COPY public.products (id, category_id, brand_id, name, slug, description, is_act
 
 
 --
+-- Data for Name: rate_limits; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.rate_limits (key, hits, window_start, blocked_until, updated_at) FROM stdin;
+login:c43a43213cff14e40aee60ed5d735a56ba762b0e	1	2026-04-05 21:13:19+07	\N	2026-04-05 21:13:19.718505+07
+login:f584282d9ebe139535bf1700dc6421a38a99e20f	1	2026-04-05 21:13:22+07	\N	2026-04-05 21:13:22.137308+07
+login:3aa2ceafee33338592d9747106a3d63817d991f0	1	2026-04-05 21:13:25+07	\N	2026-04-05 21:13:25.949273+07
+login:43c9df729c9060605ac05b94167f0427b6d178cc	1	2026-04-05 21:13:29+07	\N	2026-04-05 21:13:29.898277+07
+login:1bbd877cb40dedf01ff6def98bc7148d416bfd75	1	2026-04-05 21:13:33+07	\N	2026-04-05 21:13:33.83489+07
+login:fda4afc34bcc75bee4460e69e785761bf7fb1437	1	2026-04-05 21:13:37+07	\N	2026-04-05 21:13:37.417261+07
+login:69eaf68e7cb85803ee4b516868b10a506e6f8f93	1	2026-04-05 21:13:40+07	\N	2026-04-05 21:13:40.564914+07
+login:80a713d2783f9a2f0737da9222f2f529410c70c0	1	2026-04-05 21:13:48+07	\N	2026-04-05 21:13:48.21521+07
+login:f470e58742d6c863793e23835dbd6489c19b602e	1	2026-04-05 21:13:51+07	\N	2026-04-05 21:13:51.444762+07
+login:e03cc729ad127d479ed9ac4d9682d28c514aa031	1	2026-04-05 21:13:54+07	\N	2026-04-05 21:13:54.923683+07
+login:29fa0ffcb59ad99be0f3e0ef1d35b6188f96e325	2	2026-04-05 21:13:44+07	\N	2026-04-05 21:13:59.001005+07
+login:7fb378591936e0cb4f4454e0552d4861249245f4	1	2026-04-05 21:14:01+07	\N	2026-04-05 21:14:01.852835+07
+login:106c2277caced93566f3025a850f491bcc15689f	1	2026-04-05 21:14:05+07	\N	2026-04-05 21:14:05.748826+07
+login:c64a6d2cf36bbe91be32aca72146864d58ecdd6a	1	2026-04-05 21:14:08+07	\N	2026-04-05 21:14:08.768656+07
+login:71e0d384c47bbff5d1faaba4728af4bf6258459d	6	2026-04-05 21:19:38+07	2026-04-05 21:35:10+07	2026-04-05 21:20:10.373586+07
+login-ip:4b84b15bff6ee5796152495a230e45e3d7e947d9	2	2026-04-06 12:08:22+07	\N	2026-04-06 12:12:23.925226+07
+login:f795b68bfc1fa048f36d2e73f5fbd874850e84f4	2	2026-04-06 12:08:22+07	\N	2026-04-06 12:12:23.938962+07
+\.
+
+
+--
 -- Data for Name: reviews; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.reviews (id, product_id, user_id, rating, comment, status, created_at) FROM stdin;
 8	76	2	5	hay	visible	2026-03-21 19:20:34.598204+07
+9	27	6	5	mmm	visible	2026-04-03 19:28:46.884119+07
+\.
+
+
+--
+-- Data for Name: role_permissions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.role_permissions (id, role_id, permission_id) FROM stdin;
+12	3	2
+13	3	3
+14	3	5
+15	3	6
+16	3	7
+17	3	10
+18	3	13
+23	4	9
+24	4	11
+25	4	12
+26	4	13
+27	5	8
 \.
 
 
@@ -2019,6 +2491,7 @@ COPY public.roles (id, code, name, is_system, created_at) FROM stdin;
 3	staff_sales	Nhân viên bán hàng	t	2026-01-08 22:43:15.505768+07
 4	staff_cs	Nhân viên CSKH	t	2026-01-08 22:43:15.505768+07
 5	staff_warehouse	Nhân viên kho	t	2026-01-08 22:43:15.505768+07
+6	nhn_vin_bo_hng	Nhân viên bảo hàng	f	2026-04-04 15:01:48.42928+07
 \.
 
 
@@ -2030,6 +2503,10 @@ COPY public.user_vouchers (id, user_id, voucher_id, used, created_at) FROM stdin
 4	2	4	t	2026-03-14 20:10:32.105221
 5	2	5	t	2026-03-14 20:23:26.354051
 6	1	4	t	2026-03-20 18:33:59.942074
+8	2	6	t	2026-04-04 15:46:09.937515
+9	2	7	f	2026-04-04 21:02:12.939212
+7	1	5	t	2026-03-29 16:18:29.174891
+10	1	7	f	2026-04-04 22:01:21.025928
 \.
 
 
@@ -2037,9 +2514,14 @@ COPY public.user_vouchers (id, user_id, voucher_id, used, created_at) FROM stdin
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.users (id, role_id, email, password_hash, status, created_at) FROM stdin;
-2	1	admin@techgear.local	$2y$12$GVH/nqvkLL8FyxsQEVhwRu9TiM7FYC0izrMozQvKf9FEDTYZUYZw6	active	2026-03-08 22:31:43.764918+07
-1	2	tututu7444@gmail.com	$2y$12$SR675qjgYY9M7jPY/T3bnOorBM/WmoQiT1v9fFdzQ7xexwLkTs.3S	active	2026-03-08 22:18:00.16866+07
+COPY public.users (id, role_id, email, password_hash, status, created_at, avatar_url, google_avatar_url) FROM stdin;
+2	1	admin@techgear.local	$2y$12$GVH/nqvkLL8FyxsQEVhwRu9TiM7FYC0izrMozQvKf9FEDTYZUYZw6	active	2026-03-08 22:31:43.764918+07	/uploads/avatars/user_2_bd54c418315f2501.jpg	\N
+6	2	nguyenkhoi29112005@gmail.com	$2y$12$H33XR4QTQErkW3PcfCyYr.6J/djMwakGcrP8fM577Ces.63/XKj9C	active	2026-04-03 19:26:57.987303+07	\N	https://lh3.googleusercontent.com/a/ACg8ocLJvXjnRmdAGwwiiJTiLcZTERPCGmtxliTH_FLvWFZTTqjubVg=s96-c
+4	3	tub2306648@student.ctu.edu.vn	$2y$12$umAngz4R0PYpvHVBcnZfMuULga/Kauj6KphYZd55RItKdPS5XXmaG	banned	2026-03-29 16:27:52.944108+07	\N	\N
+5	3	tututu@gmail.com	$2y$12$T4oDrlDouJiCt7tsfKEnNejkPXAFvIKH4K4ySUtr57vhAzJN/fSA6	active	2026-04-03 18:51:56.166198+07	\N	\N
+3	4	tub2306648@gmail.com	$2y$12$vnvICI6N1pZ2TzJMSsi2..jrYTA9j934l5fjdOB.7OzsFfxTgMy/S	active	2026-03-28 17:35:09.840478+07	\N	https://lh3.googleusercontent.com/a/ACg8ocIA-d0NpfNUGH2rCr6zaELCFw6TqsfdIx4PgA7hoMvRTKM11g=s96-c
+1	2	tututu7444@gmail.com	$2y$12$AaAqZoLoQEf/QaYKrj1cqe2xbyVYSXUI0UGEl9oF5ewQNdbPFGHDC	active	2026-03-08 22:18:00.16866+07	\N	https://lh3.googleusercontent.com/a/ACg8ocKJM6UNEzMeMVeck29AwOca31uSXmKAeILEItKJ1VEcc0hWPw=s96-c
+7	2	tututu74442@gmail.com	$2y$12$/6oi8i9WcmRf.Zu7Rmx5BOktMpjTCCc.hIe1c9/o2pR2aE517etku	active	2026-04-05 21:12:33.198879+07	\N	\N
 \.
 
 
@@ -2055,9 +2537,11 @@ COPY public.variant_option_values (id, variant_id, option_value_id) FROM stdin;
 -- Data for Name: vouchers; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.vouchers (id, name, code, discount_amount, start_date, end_date, quantity, status, created_at) FROM stdin;
-5	6768767	TUHOANG7444	50000	2026-03-14	2026-04-13	99	active	2026-03-14 20:23:16.280321
-4	Lê Hoàng Tú	MB123	50000	2026-03-14	2026-04-13	98	active	2026-03-14 20:10:15.911199
+COPY public.vouchers (id, name, code, discount_amount, start_date, end_date, quantity, status, created_at, apply_category_id, customer_type) FROM stdin;
+4	Lê Hoàng Tú	MB123	50000	2026-03-14	2026-04-13	98	active	2026-03-14 20:10:15.911199	\N	all
+5	6768767	TUHOANG7444	50000	2026-03-14	2026-04-13	98	active	2026-03-14 20:23:16.280321	\N	all
+6	Lê Hoàng Tú 3	VB67	50000	2026-04-04	2026-05-04	99	active	2026-04-04 15:45:49.87684	28	all
+7	hihih	HIHI	50000	2026-04-04	2026-05-04	98	active	2026-04-04 21:02:01.380733	\N	vip
 \.
 
 
@@ -2086,7 +2570,7 @@ SELECT pg_catalog.setval('public.categories_id_seq', 45, true);
 -- Name: contacts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.contacts_id_seq', 4, true);
+SELECT pg_catalog.setval('public.contacts_id_seq', 6, true);
 
 
 --
@@ -2100,7 +2584,7 @@ SELECT pg_catalog.setval('public.coupons_id_seq', 2, true);
 -- Name: customer_profiles_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.customer_profiles_id_seq', 7, true);
+SELECT pg_catalog.setval('public.customer_profiles_id_seq', 18, true);
 
 
 --
@@ -2114,7 +2598,7 @@ SELECT pg_catalog.setval('public.employee_profiles_id_seq', 1, false);
 -- Name: inventory_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.inventory_logs_id_seq', 17, true);
+SELECT pg_catalog.setval('public.inventory_logs_id_seq', 53, true);
 
 
 --
@@ -2142,35 +2626,42 @@ SELECT pg_catalog.setval('public.option_values_id_seq', 2, true);
 -- Name: order_addresses_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.order_addresses_id_seq', 24, true);
+SELECT pg_catalog.setval('public.order_addresses_id_seq', 58, true);
 
 
 --
 -- Name: order_approvals_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.order_approvals_id_seq', 18, true);
+SELECT pg_catalog.setval('public.order_approvals_id_seq', 48, true);
 
 
 --
 -- Name: order_items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.order_items_id_seq', 27, true);
+SELECT pg_catalog.setval('public.order_items_id_seq', 61, true);
 
 
 --
 -- Name: order_status_history_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.order_status_history_id_seq', 14, true);
+SELECT pg_catalog.setval('public.order_status_history_id_seq', 44, true);
 
 
 --
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.orders_id_seq', 25, true);
+SELECT pg_catalog.setval('public.orders_id_seq', 59, true);
+
+
+--
+-- Name: password_reset_otps_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.password_reset_otps_id_seq', 31, true);
 
 
 --
@@ -2184,14 +2675,21 @@ SELECT pg_catalog.setval('public.payment_methods_id_seq', 2, true);
 -- Name: payments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.payments_id_seq', 1, false);
+SELECT pg_catalog.setval('public.payments_id_seq', 30, true);
+
+
+--
+-- Name: permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.permissions_id_seq', 3375, true);
 
 
 --
 -- Name: post_related_products_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.post_related_products_id_seq', 5, true);
+SELECT pg_catalog.setval('public.post_related_products_id_seq', 21, true);
 
 
 --
@@ -2212,7 +2710,7 @@ SELECT pg_catalog.setval('public.pricing_settings_id_seq', 1, true);
 -- Name: product_discount_campaigns_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.product_discount_campaigns_id_seq', 4, true);
+SELECT pg_catalog.setval('public.product_discount_campaigns_id_seq', 7, true);
 
 
 --
@@ -2240,28 +2738,35 @@ SELECT pg_catalog.setval('public.products_id_seq', 76, true);
 -- Name: reviews_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.reviews_id_seq', 8, true);
+SELECT pg_catalog.setval('public.reviews_id_seq', 9, true);
+
+
+--
+-- Name: role_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.role_permissions_id_seq', 27, true);
 
 
 --
 -- Name: roles_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.roles_id_seq', 5, true);
+SELECT pg_catalog.setval('public.roles_id_seq', 6, true);
 
 
 --
 -- Name: user_vouchers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.user_vouchers_id_seq', 6, true);
+SELECT pg_catalog.setval('public.user_vouchers_id_seq', 10, true);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 2, true);
+SELECT pg_catalog.setval('public.users_id_seq', 7, true);
 
 
 --
@@ -2275,7 +2780,7 @@ SELECT pg_catalog.setval('public.variant_option_values_id_seq', 2, true);
 -- Name: vouchers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.vouchers_id_seq', 5, true);
+SELECT pg_catalog.setval('public.vouchers_id_seq', 7, true);
 
 
 --
@@ -2487,6 +2992,14 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: password_reset_otps password_reset_otps_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.password_reset_otps
+    ADD CONSTRAINT password_reset_otps_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: payment_methods payment_methods_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2508,6 +3021,22 @@ ALTER TABLE ONLY public.payment_methods
 
 ALTER TABLE ONLY public.payments
     ADD CONSTRAINT payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: permissions permissions_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.permissions
+    ADD CONSTRAINT permissions_code_key UNIQUE (code);
+
+
+--
+-- Name: permissions permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.permissions
+    ADD CONSTRAINT permissions_pkey PRIMARY KEY (id);
 
 
 --
@@ -2607,11 +3136,35 @@ ALTER TABLE ONLY public.products
 
 
 --
+-- Name: rate_limits rate_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.rate_limits
+    ADD CONSTRAINT rate_limits_pkey PRIMARY KEY (key);
+
+
+--
 -- Name: reviews reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.reviews
     ADD CONSTRAINT reviews_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: role_permissions role_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: role_permissions role_permissions_role_id_permission_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_role_id_permission_id_key UNIQUE (role_id, permission_id);
 
 
 --
@@ -2853,6 +3406,13 @@ CREATE INDEX idx_orders_status ON public.orders USING btree (status);
 --
 
 CREATE INDEX idx_orders_user_id ON public.orders USING btree (user_id);
+
+
+--
+-- Name: idx_password_reset_otps_email; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_password_reset_otps_email ON public.password_reset_otps USING btree (email, created_at DESC);
 
 
 --
@@ -3171,6 +3731,14 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: password_reset_otps password_reset_otps_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.password_reset_otps
+    ADD CONSTRAINT password_reset_otps_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: payments payments_method_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3259,6 +3827,22 @@ ALTER TABLE ONLY public.reviews
 
 
 --
+-- Name: role_permissions role_permissions_permission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES public.permissions(id) ON DELETE CASCADE;
+
+
+--
+-- Name: role_permissions role_permissions_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(id) ON DELETE CASCADE;
+
+
+--
 -- Name: user_vouchers user_vouchers_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -3302,5 +3886,5 @@ ALTER TABLE ONLY public.variant_option_values
 -- PostgreSQL database dump complete
 --
 
-\unrestrict zL8dJfhvBbgoCtPQLivZlSzYfo1wUuHhIW24JBVhscAN3gyYecsDEsghiFWKc10
+\unrestrict BfkJAJ0Uuo7Jd9ocJ7o62sJOdtyTuAesf1Rru1SukwEr3v3vgBQzTG7SVrcubuf
 
