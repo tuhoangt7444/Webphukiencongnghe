@@ -29,7 +29,7 @@ $buildPageUrl = static function(int $page) use ($baseQuery): string {
         <small class="text-muted">Quản trị danh mục sản phẩm e-commerce</small>
     </div>
     <a href="/admin/products/create" class="btn btn-primary">
-        <i class="fa-solid fa-plus me-1"></i> + Thêm sản phẩm
+        <i class="fa-solid fa-plus me-1"></i>Thêm sản phẩm
     </a>
 </div>
 

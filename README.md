@@ -256,7 +256,7 @@ Nếu bạn đổi port hoặc domain trong Nginx thì cập nhật theo đúng 
 ## 11. Tài khoản chạy thử nhanh
 
 - Admin: `admin@techgear.local`
-- Mật khẩu: `Admin@123456`
+- Mật khẩu: `Admin@123`
 
 ## 12. Hỗ trợ nhanh
 
