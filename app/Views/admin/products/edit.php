@@ -1,4 +1,4 @@
-﻿<?php use App\Core\View; ?>
+<?php use App\Core\View; ?>
 <?php $categories = $categories ?? []; ?>
 <?php $error = $_SESSION['error'] ?? null; unset($_SESSION['error']); ?>
 

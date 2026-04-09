@@ -84,7 +84,7 @@ final class AdminRolePermission
     {
         $map = self::pathPermissionMap();
 
-        // Match longest prefix first.
+        # Match longest prefix first.
         uksort($map, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
 
         foreach ($map as $prefix => $permission) {
@@ -352,7 +352,7 @@ final class AdminRolePermission
     {
         $pdo = DB::conn();
 
-        // Prefer moving users to customer role when deleting non-customer roles.
+        # Prefer moving users to customer role when deleting non-customer roles.
         if ($deletingRoleCode !== 'customer') {
             $stCustomer = $pdo->prepare("SELECT id FROM roles WHERE code = 'customer' LIMIT 1");
             $stCustomer->execute();
@@ -362,7 +362,7 @@ final class AdminRolePermission
             }
         }
 
-        // Otherwise pick any role except admin and the role being deleted.
+        # Otherwise pick any role except admin and the role being deleted.
         $stAny = $pdo->prepare(
             "SELECT id
              FROM roles

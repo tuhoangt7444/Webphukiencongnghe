@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 use App\Core\View;
 $order = $order ?? null;
 $items = $items ?? [];

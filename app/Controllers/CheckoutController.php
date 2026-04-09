@@ -552,7 +552,7 @@ class CheckoutController extends Controller
 
     private function isVnpayPaymentSuccessful(string $responseCode, string $transactionStatus): bool
     {
-        // Mark paid only when both fields confirm success.
+        # Mark paid only when both fields confirm success.
         return $responseCode === '00' && $transactionStatus === '00';
     }
 

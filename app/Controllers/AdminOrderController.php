@@ -73,7 +73,7 @@ class AdminOrderController extends Controller
 
         $redirect = trim((string)$this->request->input('redirect', 'show'));
         if ($redirect === 'index') {
-            // Build query string to preserve filters
+            # Build query string to preserve filters
             $queryParams = [
                 'q' => (string)$this->request->input('q', ''),
                 'status' => (string)$this->request->input('status_filter', ''),
@@ -106,7 +106,7 @@ class AdminOrderController extends Controller
             return;
         }
 
-        // Build query string to preserve filters
+        # Build query string to preserve filters
         $queryParams = [
             'q' => (string)$this->request->input('q', ''),
             'status' => (string)$this->request->input('status', ''),

@@ -346,14 +346,14 @@ class AuthController extends Controller
 
             error_log('verifyOtpOnly: email=' . $email . ' (len=' . strlen($email) . '), otp=' . $otp . ' (len=' . strlen($otp) . ')');
 
-            // More lenient email validation
+            # More lenient email validation
             if (empty($email)) {
                 error_log('verifyOtpOnly: email empty');
                 $this->response->json(['ok' => false, 'error' => 'email-invalid'], 400);
                 return;
             }
 
-            // Try basic regex first
+            # Try basic regex first
             if (!preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
                 error_log('verifyOtpOnly: email regex failed for ' . $email);
                 $this->response->json(['ok' => false, 'error' => 'email-invalid'], 400);

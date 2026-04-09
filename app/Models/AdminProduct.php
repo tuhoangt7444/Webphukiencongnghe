@@ -189,7 +189,7 @@ final class AdminProduct {
         return $row;
     }
 
-    // Logic tính giá bán dựa trên chi phí hệ thống
+    # Logic tính giá bán dựa trên chi phí hệ thống
     public static function calculateFinalPrice(int $basePrice): int {
         $pdo = DB::conn();
         $st = $pdo->query("SELECT * FROM pricing_settings ORDER BY id DESC LIMIT 1");
@@ -227,7 +227,7 @@ final class AdminProduct {
         $pdo = DB::conn();
         $pdo->beginTransaction();
         try {
-            // Tính giá bán từ giá gốc và các %
+            # Tính giá bán từ giá gốc và các %
             $costPrice = (int)$data['cost_price'];
             $importTaxPercent = (float)($data['import_tax_percent'] ?? 0);
             $vatPercent = (float)($data['vat_percent'] ?? 0);
@@ -280,7 +280,7 @@ final class AdminProduct {
         $pdo = DB::conn();
         $pdo->beginTransaction();
         try {
-            // Tính giá bán từ giá gốc và các %
+            # Tính giá bán từ giá gốc và các %
             $costPrice = (int)$pData['cost_price'];
             $importTaxPercent = (float)($pData['import_tax_percent'] ?? 0);
             $vatPercent = (float)($pData['vat_percent'] ?? 0);
@@ -370,7 +370,7 @@ final class AdminProduct {
                     'stock' => max(0, (int)$vData['stock']),
                 ]);
             } else {
-                // Product does not have any variant yet, create a default one.
+                # Product does not have any variant yet, create a default one.
                 $insertDefault = $pdo->prepare(
                     "INSERT INTO product_variants (product_id, sku, combination_key, base_price, sale_price, stock, is_active)
                      VALUES (:pid, :sku, 'default', :bp, :sp, :stock, TRUE)"
@@ -586,7 +586,7 @@ final class AdminProduct {
             ]);
             return (int)$insert->fetchColumn();
         } catch (\PDOException $e) {
-            // In case another request creates the same brand concurrently.
+            # In case another request creates the same brand concurrently.
             $find->execute(['name' => $name]);
             $retryId = $find->fetchColumn();
             if ($retryId) {

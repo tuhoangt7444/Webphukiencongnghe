@@ -20,7 +20,7 @@ final class PasswordResetOtp
 
         $user = User::findByEmail($email);
         if (!$user) {
-            // Keep response generic to avoid user enumeration.
+            # Keep response generic to avoid user enumeration.
             return ['ok' => true, 'noop' => true];
         }
 

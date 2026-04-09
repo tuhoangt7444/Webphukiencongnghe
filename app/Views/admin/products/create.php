@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 use App\Core\View;
 
 $old = $_SESSION['old'] ?? [];

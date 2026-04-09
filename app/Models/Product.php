@@ -372,10 +372,10 @@ final class Product {
     public static function categoriesForFilter(): array
     {
         $pdo = DB::conn();
-        $sql = "SELECT DISTINCT c.id, c.name, c.slug
-                FROM categories c
-                JOIN products p ON p.category_id = c.id AND p.is_active = TRUE
-                ORDER BY c.name ASC";
+        $sql = "SELECT c.id, c.name, c.slug
+            FROM categories c
+            WHERE c.status = 'active'
+            ORDER BY c.name ASC";
 
         return $pdo->query($sql)->fetchAll();
     }
@@ -592,14 +592,14 @@ final class Product {
             $stockTotal += max(0, (int)($variant['stock'] ?? 0));
         }
 
-        // Keep both keys for compatibility across old/new views.
+        # Keep both keys for compatibility across old/new views.
         $product['stock_total'] = $stockTotal;
         $product['stock'] = $stockTotal;
         $product['images'] = $images;
         $product['image'] = $images[0] ?? '';
         $product['rating'] = $avgRating;
 
-        // Apply active campaign discount
+        # Apply active campaign discount
         $campaignDiscount = \App\Models\ProductDiscount::getActiveDiscountForProduct($id);
         $salePrice = (int)($product['price_from'] ?? 0);
         $product['discount_percent'] = $campaignDiscount;
@@ -659,7 +659,7 @@ final class Product {
     {
         $pdo = DB::conn();
         
-        // Nếu không có categoryId, không lấy sản phẩm liên quan
+        # Nếu không có categoryId, không lấy sản phẩm liên quan
         if (!$categoryId) {
             return [];
         }

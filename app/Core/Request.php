@@ -2,9 +2,9 @@
 namespace App\Core;
 class Request
 {
+    # lấy HTTP method, có hỗ trợ override cho form
     public function method(): string 
     {
-        #lấy phương thức của request (hỗ trợ override cho form)
         $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
         if ($method === 'POST') {
@@ -19,20 +19,23 @@ class Request
 
         return $method;
     }
-    # lấy đường dẫn của request
+
+    # lấy path đã chuẩn hóa
     public function path(): string 
     {
-        $uri = $_SERVER['REQUEST_URI'] ?? '/'; # lấy URI từ domain
-        $path = parse_url($uri, PHP_URL_PATH) ?? '/'; # tach phần path từ URI
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $path = parse_url($uri, PHP_URL_PATH) ?? '/';
         $path = rtrim($path, '/');
         return $path === '' ? '/' : $path;
     }
-    # lấy các tham số truy vấn từ url
+
+    # lấy query params từ URL
     public function query(): array
     {
         return $_GET;
     }
-    # lấy dữ liệu từ bodu từ request
+
+    # lấy body cho request không phải GET
     public function body(): array
     {
         $method = $this->method();
@@ -41,25 +44,23 @@ class Request
         }
 
         $contentType = strtolower((string)($_SERVER['CONTENT_TYPE'] ?? ''));
-        // Check Content-Type FIRST to handle JSON
         if (str_contains($contentType, 'application/json')) {
             $raw = file_get_contents('php://input') ?: '';
             $decoded = json_decode($raw, true);
             return is_array($decoded) ? $decoded : [];
         }
 
-        // Handle form-encoded POST data
         if ($method === 'POST' && !empty($_POST)) {
             return $_POST;
         }
 
-        // Handle other methods or raw form-encoded data
         $raw = file_get_contents('php://input') ?: '';
 
         parse_str($raw, $parsed);
         return is_array($parsed) ? $parsed : [];
     }
-    #lấy giá trị của 1 tham số cụ thể từ request
+
+    # lấy 1 input theo thứ tự POST -> body -> query
     public function input(string $key, $default = null)
     {
         if (isset($_POST[$key])) {
@@ -74,7 +75,8 @@ class Request
         }
         return $default;
     }
-    #lấy tất cả các header từ request
+
+    # lấy toàn bộ header của request
     public function headers(): array
     {
         if (function_exists('getallheaders')) {

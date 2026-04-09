@@ -2,7 +2,7 @@
 namespace App\Core;
  class View 
  {
-    # Hàm escape để tránh XSS
+    # escape text an toàn cho HTML
     public static function e(?string $value): string 
     {
         return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -42,16 +42,13 @@ namespace App\Core;
             die("Không tìm thấy layout: " . $layoutFile);
         }
 
-        // Tạm thời comment dòng này sau khi thấy nó hiện chữ "layouts/admin"
-        // echo "<!-- Debug: Đang dùng layout: $layout -->"; 
-
         ob_start();
         require $layoutFile;
         $content = (string)ob_get_clean();
 
         echo self::injectCsrfTokenIntoPostForms($content);
     }
-    # Hàm tạo trường CSRF
+    # tạo hidden input chứa CSRF token
     public static function csrf_field(): string 
     {
         if (session_status() === PHP_SESSION_NONE) session_start();

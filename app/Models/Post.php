@@ -21,7 +21,7 @@ final class Post
             return true;
         }
 
-        // Try to bootstrap relation table so admin feature can work without manual migration.
+        # Try to bootstrap relation table so admin feature can work without manual migration.
         try {
             $pdo->exec(
                 "CREATE TABLE IF NOT EXISTS post_related_products (

@@ -2,30 +2,34 @@
 namespace App\Core;
 class Response
 {
-    #đặt mã trạng thái cho phản hồi
+    # đặt HTTP status code
     public function setStatus(int $code): void
     {
         http_response_code($code);
     }
-    #đặt header cho phản hồi
+
+    # gửi response header
     public function header(string $key, string $value): void
     {
         header($key . ': ' . $value);
     }
-    #gửi phản hồi với nội dung và mã trạng thái
+
+    # gửi nội dung thường kèm status
     public function send(string $content, int $status = 200): void
     {
         $this->setStatus($status);
         echo $content;
     }
-    # chuyển hướng đến URL khác
+
+    # chuyển hướng sang URL khác
     public function redirect(string $url, int $status = 302): void
     {
         $this->setStatus($status);
         header('Location: ' . $url);
         exit; 
     }
-    #gửi phản hồi dưới dạng JSON
+
+    # trả về JSON response
     public function json(array $data, int $status = 200): void
     {
         $this->setStatus($status);

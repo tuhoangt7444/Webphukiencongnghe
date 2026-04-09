@@ -54,8 +54,8 @@ final class ChatboxController extends Controller
 
         $analysis = $this->analyzeMessage($message);
         $analysis = $this->mergeWithSessionContext($analysis);
-        // Intentionally disable keyword-score override because it can wrongly force
-        // intents like price_filter and break high-priority intents (voucher/reset/out_of_scope).
+        # Intentionally disable keyword-score override because it can wrongly force
+        # intents like price_filter and break high-priority intents (voucher/reset/out_of_scope).
 
         if ($analysis['intent'] === 'out_of_scope') {
             $reply = $this->buildReplyMessage($analysis, []);
@@ -380,7 +380,7 @@ final class ChatboxController extends Controller
             $detectedMax = $detectedMin + ((int)$m[2]) * 100000;
         }
 
-        // Handle "tầm/khoảng/cỡ/xấp xỉ" as an approximate budget window.
+        # Handle "tầm/khoảng/cỡ/xấp xỉ" as an approximate budget window.
         if (preg_match('/(?:tam|tầm|khoang|khoảng|co|cỡ|xap xi|xấp xỉ)\s*([\d\.,]+)\s*(trieu|triệu|tr|k|nghin|nghìn|cu|củ)/u', $clean, $m)) {
             $center = $this->toVnd($m[1], $m[2] ?? '');
             if ($center > 0) {
@@ -425,7 +425,7 @@ final class ChatboxController extends Controller
             return 'out_of_scope';
         }
 
-        // 1) High-priority intents: detect first to prevent fall-through.
+        # 1) High-priority intents: detect first to prevent fall-through.
         if ($this->containsAnyKeyword($text, [
             'khong phai voucher', 'ko phai voucher', 'khong phai ma giam gia', 'ko phai ma giam gia'
         ], false) && $this->containsAnyKeyword($text, [
@@ -462,7 +462,7 @@ final class ChatboxController extends Controller
             return 'out_of_scope';
         }
 
-        // 2) Product/service intents.
+        # 2) Product/service intents.
         if (preg_match('/\b(xin chao|chao|hello|hi|alo)\b/u', $text)) {
             return 'greeting';
         }
@@ -535,7 +535,7 @@ final class ChatboxController extends Controller
             return 'product_detail';
         }
 
-        // 3) Domain fallback: if message still looks like tech accessory context, keep general.
+        # 3) Domain fallback: if message still looks like tech accessory context, keep general.
         if ($this->containsAnyKeyword($text, [
             'phu kien', 'phu kien cong nghe', 'techgear', 'tai nghe', 'ban phim',
             'laptop', 'vga', 'gpu', 'ram', 'ssd', 'man hinh', 'loa', 'sac', 'cap', 'chuot'

@@ -5,6 +5,7 @@ final class SecurityHeaders
 {
     public static function apply(): void
     {
+        header('Content-Type: text/html; charset=UTF-8');
         header('X-Frame-Options: DENY');
         header('X-Content-Type-Options: nosniff');
         header('Referrer-Policy: strict-origin-when-cross-origin');

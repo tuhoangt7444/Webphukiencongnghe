@@ -88,7 +88,7 @@ class ProductController extends Controller
             return;
         }
         
-        // Lấy sản phẩm liên quan cùng danh mục
+        # Lấy sản phẩm liên quan cùng danh mục
         $relatedProducts = Product::relatedByCategory(
             $productId,
             (int)($product['category_id'] ?? 0), 

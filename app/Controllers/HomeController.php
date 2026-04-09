@@ -47,7 +47,7 @@ class HomeController extends Controller
                 $claimedVoucherIds = Voucher::allClaimedVoucherIdsByUser($userId);
             }
         } catch (\Throwable $e) {
-            // Keep homepage available even when one of the data queries fails.
+            # Keep homepage available even when one of the data queries fails.
         }
 
         $this->view('home/index', [

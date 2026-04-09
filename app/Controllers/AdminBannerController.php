@@ -204,7 +204,7 @@ final class AdminBannerController extends Controller
         $srcW = (int)$size[0];
         $srcH = (int)$size[1];
 
-        // Resize and crop to exact banner dimensions while keeping the subject centered.
+        # Resize and crop to exact banner dimensions while keeping the subject centered.
         $scale = max($targetW / max(1, $srcW), $targetH / max(1, $srcH));
         $resizeW = max(1, (int)ceil($srcW * $scale));
         $resizeH = max(1, (int)ceil($srcH * $scale));

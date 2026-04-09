@@ -50,13 +50,13 @@ final class AdminProductController extends Controller {
         $this->ensureSession();
 
         try {
-            // Các thông số tính giá
+            # Các thông số tính giá
             $costPrice = (int)$this->request->input('cost_price', 0);
             $importTaxPercent = (float)$this->request->input('import_tax_percent', 0);
             $vatPercent = (float)$this->request->input('vat_percent', 0);
             $profitPercent = (float)$this->request->input('profit_percent', 0);
             
-            // Tính giá bán bằng PricingCalculator
+            # Tính giá bán bằng PricingCalculator
             $salePrice = AdminProduct::calculatePrice($costPrice, $importTaxPercent, $vatPercent, $profitPercent);
             $categoryId = (int)$this->request->input('category_id', 0);
             $brandName = trim((string)$this->request->input('brand_name', ''));
@@ -122,13 +122,13 @@ final class AdminProductController extends Controller {
 
         $pid = (int)$id;
         
-        // Các thông số tính giá
+        # Các thông số tính giá
         $costPrice = (int)$this->request->input('cost_price', 0);
         $importTaxPercent = (float)$this->request->input('import_tax_percent', 0);
         $vatPercent = (float)$this->request->input('vat_percent', 0);
         $profitPercent = (float)$this->request->input('profit_percent', 0);
         
-        // Tính giá bán bằng PricingCalculator
+        # Tính giá bán bằng PricingCalculator
         $salePrice = AdminProduct::calculatePrice($costPrice, $importTaxPercent, $vatPercent, $profitPercent);
         $categoryId = (int)$this->request->input('category_id', 0);
         $brandName = trim((string)$this->request->input('brand_name', ''));

@@ -5,19 +5,20 @@ use App\Services\SecurityLogger;
 
 class Router
 {
-    private Request $request; #biến lưu trữ đối tượng Request
-    private array $routes = []; #mảng lưu trữ các tuyến đường
+    private Request $request;
+    private array $routes = [];
 
     public function __construct(Request $request)
     {
         $this->request = $request;
     }
-    #thêm tuyến đường vào mảng routes 
+    # đăng ký route GET
     public function get(string $pattern, string $handler): RouteDef
     {
         return $this->add('GET', $pattern, $handler);
     }
-    #thêm tuyến đường vào mảng routes
+
+    # đăng ký route POST
     public function post(string $pattern, string $handler): RouteDef
     {
         return $this->add('POST', $pattern, $handler);
@@ -32,13 +33,13 @@ class Router
     {
         return $this->add('DELETE', $pattern, $handler);
     }
-    #chuan hóa đường dẫn
+    # chuẩn hóa path route
     private function normalize(string $path): string
     {
         $path = rtrim($path, '/');
         return $path === '' ? '/' : $path;
     }
-    #hàm biên dịch mẫu đường dẫn thành biểu thức chính quy
+    # biên dịch pattern route sang regex
     private function compile(string $pattern): string 
     {
         $pattern = $this->normalize($pattern);
@@ -48,7 +49,7 @@ class Router
         }, $pattern);
         return '#^' . $regex . '$#';
     }
-    # them tuyến đường vào mảng routes
+    # thêm route và trả về RouteDef để gắn middleware
     private function add(string $method, string $pattern,string $handler): RouteDef
     {
         $this->routes[$method][] = [
@@ -64,7 +65,7 @@ class Router
     {
         $this->routes[$method][$index]['middlewares'] = $middlewares;
     }
-    # chuyển huoớng yêu cầu đến controller và action tương ứng
+    # dispatch request đến controller/action tương ứng
     public function dispatch(): void
     {
         $method = $this->request->method();
@@ -87,20 +88,16 @@ class Router
                 continue;
             }
 
-            # Lấy tham số từ URL
             $params = [];
             foreach ($matches as $k => $v) {
                 if (!is_int($k)) {
                     $params[$k] = $v;
                 }
             }
-            # Lấy danh sách middleware
             $middlewares = $r['middlewares'] ?? [];
-            # Hàm core để gọi controller và action
             $core = function () use ($r, $params) {
                 $this->invoke($r['handler'], $params);
             };
-            # Xây dựng pipeline middleware
             $pipeline = array_reduce(
                 array_reverse($middlewares),
                 function ($next, $mwClass) {
@@ -112,12 +109,10 @@ class Router
                 $core
             );
 
-            // Chạy pipeline
             $pipeline();
             return;
         }
 
-        // Không có route đúng method, kiểm tra path có tồn tại ở method khác không.
         $allowed = $this->allowedMethodsForPath($path);
         if ($allowed !== []) {
             http_response_code(405);
@@ -170,7 +165,7 @@ class Router
         sort($allowed);
         return array_values(array_unique($allowed));
     }
-    #gọi controller và action tương ứng
+    # gọi controller action
     private function invoke(string $handler, array $params): void
     {
         [$controllerName, $action] = explode('@', $handler);

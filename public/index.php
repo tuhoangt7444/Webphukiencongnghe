@@ -1,5 +1,6 @@
 <?php
 require dirname(__DIR__) . '/vendor/autoload.php';
+ini_set('default_charset', 'UTF-8');
 
 // Lightweight .env loader for local/runtime secrets without extra dependencies.
 $envFile = dirname(__DIR__) . '/.env';

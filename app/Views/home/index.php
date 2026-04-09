@@ -503,9 +503,10 @@ $renderProductCard = static function (array $p, bool $showSold = false) use ($is
     align-items: center;
     gap: .45rem;
     font-size: .76rem;
-    font-weight: 700;
-    letter-spacing: .09em;
-    text-transform: uppercase;
+    font-family: 'Be Vietnam Pro', 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    font-weight: 600;
+    letter-spacing: .015em;
+    text-transform: none;
     color: var(--tech-blue-600);
     background: rgba(37,99,235,.1);
     border: 1px solid rgba(56,189,248,.34);
@@ -934,7 +935,7 @@ $renderProductCard = static function (array $p, bool $showSold = false) use ($is
 }
 
 .content-layer {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Be Vietnam Pro', 'Inter', 'Segoe UI', Tahoma, sans-serif;
 }
 
 .hero-swiper {
@@ -966,10 +967,11 @@ $renderProductCard = static function (array $p, bool $showSold = false) use ($is
 }
 
 .hero-title {
-    font-family: 'Sora', sans-serif;
-    font-size: clamp(2rem, 4.4vw, 3.4rem);
-    letter-spacing: -.03em;
-    line-height: 1.03;
+    font-family: 'Be Vietnam Pro', 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    font-size: clamp(1.85rem, 3.6vw, 3.05rem);
+    font-weight: 700;
+    letter-spacing: -.012em;
+    line-height: 1.16;
     color: #f8fbff;
     text-shadow: 0 16px 40px rgba(15,23,42,.72);
 }
@@ -1008,7 +1010,10 @@ $renderProductCard = static function (array $p, bool $showSold = false) use ($is
 }
 
 .section-title {
-    font-family: 'Sora', sans-serif;
+    font-family: 'Be Vietnam Pro', 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    line-height: 1.22;
     color: #e2e8f0;
 }
 
@@ -1235,7 +1240,7 @@ $renderProductCard = static function (array $p, bool $showSold = false) use ($is
                                         <div class="row hero-tech-layout g-4 align-items-center">
                                             <div class="col-xl-7 px-0 hero-copy">
                                                 <span class="hero-chip"><i class="fa-solid fa-bolt"></i>Công nghệ mới mỗi ngày</span>
-                                                <h1 class="display-5 hero-title mb-3"><?= View::e($title) ?></h1>
+                                                <h1 class="hero-title mb-3"><?= View::e($title) ?></h1>
                                                 <p class="hero-desc mb-4">Khám phá giá tốt, deal nhanh và hệ sinh thái phụ kiện công nghệ tối ưu cho học tập, công việc và gaming.</p>
                                                 <?php if ($link !== ''): ?>
                                                     <a href="<?= View::e($link) ?>" class="btn btn-info btn-lg fw-semibold px-4">Xem ngay</a>
@@ -1257,7 +1262,7 @@ $renderProductCard = static function (array $p, bool $showSold = false) use ($is
                                         <div class="row hero-tech-layout g-4 align-items-center">
                                             <div class="col-xl-7 px-0 hero-copy">
                                                 <span class="hero-chip"><i class="fa-solid fa-microchip"></i><?= View::e($slide['badge']) ?></span>
-                                                <h1 class="display-5 hero-title mb-3"><?= View::e($slide['title']) ?></h1>
+                                                <h1 class="hero-title mb-3"><?= View::e($slide['title']) ?></h1>
                                                 <p class="hero-desc mb-4"><?= View::e($slide['desc']) ?></p>
                                                 <a href="<?= View::e($slide['link']) ?>" class="btn btn-info btn-lg fw-semibold px-4"><?= View::e($slide['button']) ?></a>
                                             </div>

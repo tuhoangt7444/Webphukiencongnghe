@@ -77,7 +77,7 @@ final class Order
                 $originalPrice = $cartOriginalPrice > 0 ? $cartOriginalPrice : $sellingPrice;
                 $unitPrice = $cartUnitPrice > 0 ? $cartUnitPrice : $sellingPrice;
 
-                // Keep order data consistent: unit price should not exceed original selling price.
+                # Keep order data consistent: unit price should not exceed original selling price.
                 if ($unitPrice > $originalPrice && $originalPrice > 0) {
                     $unitPrice = $originalPrice;
                 }

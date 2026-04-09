@@ -373,7 +373,7 @@ main.is-inner-page .products-page .products-filter-panel {
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-2 mb-4">
             <div>
                 <h1 class="h3 fw-bold mb-1">Sản phẩm</h1>
-                <p class="text-muted  mb-0">Khám phá phụ kiện công nghệ phù hợp với nhu cầu của bạn.</p>
+                <p class="text-white lead mb-4" style="color:rgba(255,255,255,.96) !important;">Khám phá phụ kiện công nghệ phù hợp với nhu cầu của bạn.</p>
             </div>
             <span class="badge text-bg-primary rounded-pill px-3 py-2">Tổng cộng: <?= number_format($totalProducts) ?> sản phẩm</span>
         </div>

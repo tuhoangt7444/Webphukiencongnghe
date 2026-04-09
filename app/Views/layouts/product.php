@@ -10,6 +10,16 @@
     <!-- Tailwind CDN – layout riêng, không dùng chung với Bootstrap -->
     <script>tailwind={config:{theme:{extend:{colors:{primary:{'50':'#e0f2fe','100':'#b3e5fc','200':'#81d4fa','300':'#4fc3f7','400':'#29b6f6','500':'#03a9f4','600':'#039be5','700':'#0288d1','800':'#0277bd','900':'#01579b'},sea:'#0891b2',mint:'#10b981',slate:{'50':'#f8fafc','100':'#f1f5f9','200':'#e2e8f0','300':'#cbd5e1','400':'#94a3b8','500':'#64748b','600':'#475569','700':'#334155','800':'#1e293b','900':'#0f172a'},storm:'#e2e8f0',ink:'#0f172a'},fontFamily:{sans:['Sora','Inter','ui-sans-serif','sans-serif']}}}}}</script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        header {
+            z-index: 1300 !important;
+        }
+
+        #accountDropdownWrap,
+        #accountMenu {
+            z-index: 1310;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800">
 

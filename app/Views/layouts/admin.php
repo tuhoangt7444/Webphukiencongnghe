@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/admin', PHP_URL_PATH) ?: '/admin';
 $pageTitle = $title ?? 'Quản trị hệ thống';
 

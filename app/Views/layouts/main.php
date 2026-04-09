@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8"/>
@@ -10,18 +10,24 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <!-- Google Fonts: Inter & Sora -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <!-- Google Fonts: Inter, Sora, Be Vietnam Pro -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="/css/site-theme.css"/>
     <link rel="stylesheet" href="/css/chatbox.css"/>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        body { font-family: 'Inter', 'Be Vietnam Pro', 'Sora', 'Segoe UI', Tahoma, sans-serif; background-color: #f8f9fa; }
 
         /* Header */
         .site-header {
             position: sticky;
             top: 0;
-            z-index: 1030;
+            z-index: 1300;
+        }
+
+        .site-header .topbar,
+        .site-header .main-navbar {
+            position: relative;
+            z-index: 1300;
         }
 
         /* Topbar */
@@ -51,6 +57,7 @@
         .main-navbar .nav-link.active { font-weight: 600; }
         .cart-count { font-size: 10px; min-width: 18px; height: 18px; }
         .account-dropdown-menu { font-size: 0.875rem; min-width: 220px; }
+        .account-dropdown-menu { z-index: 1310; }
         .account-dropdown-menu .dropdown-item { padding: 0.5rem 0.75rem; }
         .dd-header { background: linear-gradient(120deg,rgba(6,182,212,.1),rgba(37,99,235,.1)); border-radius: 8px; padding: 0.5rem 0.65rem; margin-bottom: 0.35rem; }
         
@@ -392,7 +399,7 @@
                 <div class="col-lg-2 col-md-3 col-6">
                     <h5 class="footer-heading">Danh mục</h5>
                     <ul class="list-unstyled" style="font-size:0.88rem">
-                        <li class="mb-2"><a href="/products?q=&category=am-thanh&price_range=&sort=newest">Âm thanh</a></li>
+                        <li class="mb-2"><a href="/products?q=&category=am-thanh&price_range=&sort=newest">�m thanh</a></li>
                         <li class="mb-2"><a href="/products?q=&category=lot-chuot-mousepad&price_range=&sort=newest">Lót chuột</a></li>
                         <li class="mb-2"><a href="/products?q=&category=sac-cap&price_range=&sort=newest">Sạc & cáp</a></li>
                         <li class="mb-2"><a href="/products?q=&category=phu-kien-apple&price_range=&sort=newest">Phụ kiện Apple</a></li>
