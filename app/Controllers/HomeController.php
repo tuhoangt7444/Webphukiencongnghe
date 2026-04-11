@@ -19,6 +19,7 @@ class HomeController extends Controller
         }
 
         $categories = [];
+        $totalCategories = 0;
         $flashSaleProducts = [];
         $bestSellingProducts = [];
         $newProducts = [];
@@ -35,6 +36,7 @@ class HomeController extends Controller
             $homeSliderBanners = Banner::activeByPosition('home_slider', 6);
             $promoBanners = Banner::activeByPosition('promo_banner', 2);
             $categories = Category::homeFeatured(6);
+            $totalCategories = Category::countActive();
             $flashSaleProducts = Product::homeFlashSale(8);
             $bestSellingProducts = Product::homeBestSelling(8);
             $newProducts = Product::homeNewestDetailed(8);
@@ -55,6 +57,7 @@ class HomeController extends Controller
             'homeSliderBanners' => $homeSliderBanners,
             'promoBanners' => $promoBanners,
             'categories' => $categories,
+            'totalCategories' => $totalCategories,
             'flashSaleProducts' => $flashSaleProducts,
             'bestSellingProducts' => $bestSellingProducts,
             'newProducts' => $newProducts,

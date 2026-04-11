@@ -1,4 +1,5 @@
-<section class="chatbox-tech" data-chatbox>
+<?php $chatboxUserId = (int)($_SESSION['user_id'] ?? 0); ?>
+<section class="chatbox-tech" data-chatbox data-chatbox-user-id="<?= $chatboxUserId ?>">
     <button class="chatbox-toggle" type="button" data-chatbox-toggle aria-label="Mở chatbox tư vấn">
         <span class="chatbox-toggle-icon" aria-hidden="true">💬</span>
     </button>

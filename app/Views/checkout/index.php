@@ -263,22 +263,31 @@ if ($fullAddress === '') {
     }
     toggleBankSelect();
 
+    // Form submit validation
+    form.addEventListener('submit', function (e) {
+        if (payBank && payBank.checked) {
+            if (!bankSelect || !bankSelect.value) {
+                e.preventDefault();
+                alert('Vui lòng chọn ngân hàng để thanh toán');
+                return false;
+            }
+        }
+    });
+
     <?php if (!$voucherLocked): ?>
     var select = document.getElementById('checkoutVoucherSelect');
-    if (!select) {
-        return;
+    if (select) {
+        select.addEventListener('change', function () {
+            var current = new URL(window.location.href);
+            current.searchParams.set('selected_products', '<?= View::e($selectedProducts) ?>');
+            current.searchParams.set('user_voucher_id', select.value || '0');
+            if (bankSelect && bankSelect.value) {
+                current.searchParams.set('bank_code', bankSelect.value);
+            }
+            current.searchParams.delete('status');
+            window.location.href = current.pathname + '?' + current.searchParams.toString();
+        });
     }
-
-    select.addEventListener('change', function () {
-        var current = new URL(window.location.href);
-        current.searchParams.set('selected_products', '<?= View::e($selectedProducts) ?>');
-        current.searchParams.set('user_voucher_id', select.value || '0');
-        if (bankSelect && bankSelect.value) {
-            current.searchParams.set('bank_code', bankSelect.value);
-        }
-        current.searchParams.delete('status');
-        window.location.href = current.pathname + '?' + current.searchParams.toString();
-    });
     <?php endif; ?>
 })();
 </script>

@@ -166,8 +166,6 @@ if ($shippingInfoRaw !== '') {
 }
 ?>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
 <style>
 .pdp-page {
     background:
@@ -197,6 +195,7 @@ if ($shippingInfoRaw !== '') {
     overflow: hidden;
     background: #fff;
     border: 1px solid rgba(148, 163, 184, .22);
+    position: relative;
 }
 
 .pdp-gallery-main img {
@@ -384,6 +383,30 @@ if ($shippingInfoRaw !== '') {
     box-shadow: 0 8px 22px rgba(15, 23, 42, .25);
 }
 
+.stock-out-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem 1rem;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, .3);
+}
+
+.stock-out-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(1px);
+    z-index: 10;
+}
+
 .pdp-related-card {
     border: 1px solid rgba(148, 163, 184, .25);
     border-radius: 16px;
@@ -446,7 +469,15 @@ if ($shippingInfoRaw !== '') {
             <div class="col-12 col-lg-6">
                 <div class="pdp-card bg-white p-3 p-md-4">
                     <div class="pdp-gallery-main">
-                        <img id="pdpMainImage" src="<?= View::e($galleryClean[0]) ?>" alt="<?= View::e($name) ?>">
+                        <img id="pdpMainImage" src="<?= View::e($galleryClean[0]) ?>" alt="<?= View::e($name) ?>" <?= $stock <= 0 ? 'style="opacity: 0.5;"' : '' ?>>
+                        <?php if ($stock <= 0): ?>
+                            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2);">
+                                <div style="font-size: 1.8rem; font-weight: 700; color: rgba(255,255,255,0.9); text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                                    <i class="fa-solid fa-ban" style="margin-bottom: 0.5rem; display: block;"></i>
+                                    HẾT HÀNG
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="pdp-thumbs mt-3" id="pdpThumbs">
                         <?php foreach ($galleryClean as $i => $img): ?>
@@ -461,7 +492,12 @@ if ($shippingInfoRaw !== '') {
             <div class="col-12 col-lg-6">
                 <div class="pdp-card bg-white p-3 p-md-4 h-100">
                     <h1 class="pdp-title h3 mb-3"><?= View::e($name) ?></h1>
-
+                    <?php if ($stock <= 0): ?>
+                        <div class="stock-out-badge mb-3">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            Sản phẩm hết hàng
+                        </div>
+                    <?php endif; ?>
                     <?php if ($shortDescription !== ''): ?>
                         <p class="text-secondary mb-3" style="white-space: pre-line;"><?= View::e($shortDescription) ?></p>
                     <?php endif; ?>
@@ -498,7 +534,7 @@ if ($shippingInfoRaw !== '') {
                             <label class="form-label fw-semibold">Số lượng</label>
                             <div class="input-group pdp-qty">
                                 <button class="btn btn-outline-secondary" type="button" id="qtyMinus" <?= $stock <= 0 ? 'disabled' : '' ?>>-</button>
-                                <input type="number" class="form-control" id="qtyInput" name="qty" value="1" min="1" <?= $stock <= 0 ? 'disabled' : '' ?>>
+                                <input type="number" class="form-control" id="qtyInput" name="qty" value="1" min="1" max="<?= max(1, $stock) ?>" <?= $stock <= 0 ? 'disabled' : '' ?>>
                                 <button class="btn btn-outline-secondary" type="button" id="qtyPlus" <?= $stock <= 0 ? 'disabled' : '' ?>>+</button>
                             </div>
                         </div>
@@ -815,6 +851,17 @@ if ($shippingInfoRaw !== '') {
     const qtyPlus = document.getElementById('qtyPlus');
 
     if (qtyInput && qtyMinus && qtyPlus) {
+        const maxQty = Math.max(1, parseInt(qtyInput.max || '1', 10) || 1);
+
+        const clampQtyInput = () => {
+            const raw = parseInt(qtyInput.value || '1', 10);
+            const safe = Number.isFinite(raw) ? raw : 1;
+            qtyInput.value = String(Math.min(maxQty, Math.max(1, safe)));
+        };
+
+        qtyInput.addEventListener('input', clampQtyInput);
+        qtyInput.addEventListener('blur', clampQtyInput);
+
         qtyMinus.addEventListener('click', () => {
             const current = Math.max(1, parseInt(qtyInput.value || '1', 10) || 1);
             qtyInput.value = String(Math.max(1, current - 1));
@@ -822,8 +869,10 @@ if ($shippingInfoRaw !== '') {
 
         qtyPlus.addEventListener('click', () => {
             const current = Math.max(1, parseInt(qtyInput.value || '1', 10) || 1);
-            qtyInput.value = String(current + 1);
+            qtyInput.value = String(Math.min(maxQty, current + 1));
         });
+
+        clampQtyInput();
     }
 
     const purchaseForm = document.querySelector('form[action="/cart/add"]');
@@ -975,4 +1024,3 @@ if ($shippingInfoRaw !== '') {
     });
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

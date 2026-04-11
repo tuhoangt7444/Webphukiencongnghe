@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\CartSessionService;
 
 class OrderController extends Controller
 {
@@ -16,7 +17,7 @@ class OrderController extends Controller
             return;
         }
 
-        $cart = $_SESSION['cart'] ?? [];
+        $cart = CartSessionService::getCurrentCart();
         if (empty($cart)) {
             $this->response->redirect('/cart?status=empty');
             return;
@@ -77,9 +78,9 @@ class OrderController extends Controller
             }
 
             if (empty($cart)) {
-                unset($_SESSION['cart']);
+                CartSessionService::clearCurrentCart(false);
             } else {
-                $_SESSION['cart'] = $cart;
+                CartSessionService::setCurrentCart($cart);
             }
 
             unset($_SESSION['order_form']);

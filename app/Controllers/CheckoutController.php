@@ -5,6 +5,7 @@ use App\Core\Controller;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Voucher;
+use App\Services\CartSessionService;
 
 class CheckoutController extends Controller
 {
@@ -35,7 +36,7 @@ class CheckoutController extends Controller
             return;
         }
 
-        $cart = $_SESSION['cart'] ?? [];
+        $cart = CartSessionService::getCurrentCart();
         if (empty($cart)) {
             $this->response->redirect('/cart?status=empty');
             return;
@@ -120,7 +121,7 @@ class CheckoutController extends Controller
             return;
         }
 
-        $cart = $_SESSION['cart'] ?? [];
+        $cart = CartSessionService::getCurrentCart();
         if (empty($cart)) {
             $this->response->redirect('/cart?status=empty');
             return;
@@ -214,9 +215,9 @@ class CheckoutController extends Controller
             }
 
             if (empty($cart)) {
-                unset($_SESSION['cart']);
+                CartSessionService::clearCurrentCart(false);
             } else {
-                $_SESSION['cart'] = $cart;
+                CartSessionService::setCurrentCart($cart);
             }
 
             if ($paymentMethod === 'bank_transfer') {
@@ -292,7 +293,6 @@ class CheckoutController extends Controller
 
         if ($this->isVnpayPaymentSuccessful($responseCode, $transactionStatus)) {
             Order::markPaymentStatus($orderId, 'bank', 'paid');
-            Order::adminUpdateStatus($orderId, 'approved', 0);
             $this->response->redirect('/orders/history?status=payment-success');
             return;
         }
@@ -328,7 +328,6 @@ class CheckoutController extends Controller
 
         if ($this->isVnpayPaymentSuccessful($responseCode, $transactionStatus)) {
             Order::markPaymentStatus($orderId, 'bank', 'paid');
-            Order::adminUpdateStatus($orderId, 'approved', 0);
             $this->response->json([
                 'RspCode' => '00',
                 'Message' => 'Confirm Success',

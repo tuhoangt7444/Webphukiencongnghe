@@ -20,7 +20,7 @@ final class SecurityHeaders
             . "connect-src 'self' https: wss: ws:; "
             . "frame-ancestors 'none'; "
             . "base-uri 'self'; "
-            . "form-action 'self';"
+            . "form-action 'self' https://sandbox.vnpayment.vn https://pay.vnpay.vn;"
         );
     }
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8"/>
@@ -399,7 +399,7 @@
                 <div class="col-lg-2 col-md-3 col-6">
                     <h5 class="footer-heading">Danh mục</h5>
                     <ul class="list-unstyled" style="font-size:0.88rem">
-                        <li class="mb-2"><a href="/products?q=&category=am-thanh&price_range=&sort=newest">�m thanh</a></li>
+                        <li class="mb-2"><a href="/products?q=&category=am-thanh&price_range=&sort=newest">Âm thanh</a></li>
                         <li class="mb-2"><a href="/products?q=&category=lot-chuot-mousepad&price_range=&sort=newest">Lót chuột</a></li>
                         <li class="mb-2"><a href="/products?q=&category=sac-cap&price_range=&sort=newest">Sạc & cáp</a></li>
                         <li class="mb-2"><a href="/products?q=&category=phu-kien-apple&price_range=&sort=newest">Phụ kiện Apple</a></li>
@@ -455,6 +455,6 @@
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/chatbox.js"></script>
+    <script src="/js/chatbox.js?v=20260411_2"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 <?php
 $homeSliderBanners = $homeSliderBanners ?? [];
 $categories = $categories ?? [];
+$totalCategories = max(0, (int)($totalCategories ?? count($categories)));
 $flashSaleProducts = $flashSaleProducts ?? [];
 $bestSellingProducts = $bestSellingProducts ?? [];
 $newProducts = $newProducts ?? [];
@@ -77,7 +78,7 @@ $defaultPosts = [
 ];
 
 $heroStats = [
-    ['label' => 'Danh mục', 'value' => (string)count($categories)],
+    ['label' => 'Danh mục', 'value' => (string)$totalCategories],
     ['label' => 'Flash sale', 'value' => (string)count($flashSaleProducts)],
     ['label' => 'Sản phẩm mới', 'value' => (string)count($newProducts)],
     ['label' => 'Đánh giá', 'value' => (string)count($visibleReviews)],

@@ -4,7 +4,9 @@
         return;
     }
 
-    const STORAGE_KEY = 'techgear_chatbox_v1';
+    const rawChatboxUserId = Number(root.getAttribute('data-chatbox-user-id') || 0);
+    const chatboxUserId = Number.isFinite(rawChatboxUserId) && rawChatboxUserId > 0 ? rawChatboxUserId : 0;
+    const STORAGE_KEY = 'techgear_chatbox_v1_u' + String(chatboxUserId);
 
     const panel = root.querySelector('[data-chatbox-panel]');
     const toggleButton = root.querySelector('[data-chatbox-toggle]');
@@ -143,8 +145,7 @@
         const openButton = document.createElement('a');
         openButton.className = 'chatbox-product-open-btn';
         openButton.href = (product && product.url) || '/products';
-        openButton.target = '_blank';
-        openButton.rel = 'noopener noreferrer';
+        openButton.target = '_self';
         openButton.textContent = 'Vô trang sản phẩm';
         actions.appendChild(openButton);
 
@@ -496,6 +497,16 @@
     body.addEventListener('click', async function (event) {
         const target = event.target;
         if (!(target instanceof HTMLElement)) {
+            return;
+        }
+
+        const openLink = target.closest('.chatbox-product-open-btn');
+        if (openLink instanceof HTMLAnchorElement) {
+            event.preventDefault();
+            const href = String(openLink.getAttribute('href') || '').trim();
+            if (href !== '') {
+                window.location.assign(href);
+            }
             return;
         }
 

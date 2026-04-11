@@ -585,12 +585,32 @@ final class Product {
         $avgRating = (float)($st4->fetchColumn() ?: 0);
 
         $product['variants'] = $variants;
-        $product['price_from'] = isset($variants[0]['sale_price']) ? (int)$variants[0]['sale_price'] : 0;
-        $product['base_price_from'] = isset($variants[0]['base_price']) ? (int)$variants[0]['base_price'] : 0;
+        $minSalePrice = null;
+        $minBasePrice = null;
         $stockTotal = 0;
         foreach ($variants as $variant) {
+            $salePrice = (int)($variant['sale_price'] ?? 0);
+            $basePrice = (int)($variant['base_price'] ?? 0);
+
+            if ($minSalePrice === null || $salePrice < $minSalePrice) {
+                $minSalePrice = $salePrice;
+            }
+            if ($minBasePrice === null || $basePrice < $minBasePrice) {
+                $minBasePrice = $basePrice;
+            }
+
             $stockTotal += max(0, (int)($variant['stock'] ?? 0));
         }
+
+        if ($minSalePrice === null) {
+            $minSalePrice = max(0, (int)($product['price'] ?? 0));
+        }
+        if ($minBasePrice === null) {
+            $minBasePrice = $minSalePrice;
+        }
+
+        $product['price_from'] = $minSalePrice;
+        $product['base_price_from'] = $minBasePrice;
 
         # Keep both keys for compatibility across old/new views.
         $product['stock_total'] = $stockTotal;

@@ -68,7 +68,22 @@ if (($totalAmount ?? null) !== null && (int)$totalAmount > 0) {
 }
 
 .qty-control {
-    max-width: 142px;
+    max-width: 180px;
+    min-width: 170px;
+}
+
+.qty-control .form-control,
+.qty-control .btn {
+    font-size: 1rem;
+    padding: 0.625rem 0.75rem;
+    font-weight: 600;
+    height: 44px;
+}
+
+.qty-control .form-control {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
 .summary-price {
@@ -96,6 +111,12 @@ if (($totalAmount ?? null) !== null && (int)$totalAmount > 0) {
 
         <?php if ($status === 'added'): ?>
             <div class="alert alert-success">Sản phẩm đã được thêm vào giỏ hàng.</div>
+        <?php elseif ($status === 'stock-limited'): ?>
+            <div class="alert alert-warning">Số lượng thêm vào đã được giới hạn theo tồn kho hiện tại.</div>
+        <?php elseif ($status === 'stock-limit-reached'): ?>
+            <div class="alert alert-warning">Sản phẩm này đã đạt tối đa số lượng có thể thêm trong giỏ hàng.</div>
+        <?php elseif ($status === 'out-of-stock'): ?>
+            <div class="alert alert-danger">Sản phẩm đã hết hàng, không thể thêm vào giỏ hàng.</div>
         <?php elseif ($status === 'updated'): ?>
             <div class="alert alert-info">Giỏ hàng đã được cập nhật.</div>
         <?php elseif ($status === 'removed'): ?>
@@ -167,7 +188,7 @@ if (($totalAmount ?? null) !== null && (int)$totalAmount > 0) {
                                             <td>
                                                 <form method="POST" action="/cart/update" class="js-update-form m-0">
                                                     <input type="hidden" name="product_id" value="<?= $item['product_id'] ?>">
-                                                    <div class="input-group input-group-sm qty-control mx-auto">
+                                                    <div class="input-group qty-control mx-auto">
                                                         <button class="btn btn-outline-secondary js-qty-minus" type="button">-</button>
                                                         <input type="number" class="form-control text-center js-qty-input" name="qty" min="1" max="<?= $maxStock ?>" value="<?= $item['quantity'] ?>">
                                                         <button class="btn btn-outline-secondary js-qty-plus" type="button">+</button>
@@ -187,6 +208,11 @@ if (($totalAmount ?? null) !== null && (int)$totalAmount > 0) {
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="mt-3 pt-2 border-top">
+                            <button type="button" id="btnUpdateCart" class="btn btn-outline-success w-100">
+                                <i class="fa-solid fa-arrows-rotate"></i> Cập nhật giỏ hàng
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -305,7 +331,21 @@ if (($totalAmount ?? null) !== null && (int)$totalAmount > 0) {
             if (forms.length === 0) {
                 return;
             }
-            forms[0].submit();
+            // Submit all quantity updates
+            forms.forEach((form) => {
+                const input = form.querySelector('.js-qty-input');
+                if (input && input.value) {
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams(new FormData(form)),
+                    }).catch(err => console.error('Update error:', err));
+                }
+            });
+            // Reload page after a short delay
+            setTimeout(() => location.reload(), 500);
         });
     }
 

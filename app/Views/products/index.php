@@ -457,10 +457,12 @@ main.is-inner-page .products-page .products-filter-panel {
                             <div class="col-12 col-sm-6 col-xl-4">
                                 <article class="product-tech-card h-100">
                                     <a href="<?= View::e($link) ?>" class="position-relative d-block product-thumb">
-                                        <?php if ($discountPercent > 0): ?>
+                                        <?php if ($stockTotal <= 0): ?>
+                                            <span class="discount-pill" style="background: linear-gradient(135deg, #64748b, #475569);">Hết hàng</span>
+                                        <?php elseif ($discountPercent > 0): ?>
                                             <span class="discount-pill">-<?= $discountPercent ?>%</span>
                                         <?php endif; ?>
-                                        <img src="<?= View::e($image) ?>" alt="<?= View::e($name) ?>">
+                                        <img src="<?= View::e($image) ?>" alt="<?= View::e($name) ?>" <?= $stockTotal <= 0 ? 'style="opacity: 0.6;"' : '' ?>>
                                     </a>
                                     <div class="p-3 d-flex flex-column flex-grow-1">
                                         <h3 class="h6 fw-semibold product-title mb-2"><?= View::e($name) ?></h3>

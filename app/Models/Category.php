@@ -6,6 +6,17 @@ use PDO;
 
 final class Category
 {
+    public static function countActive(): int
+    {
+        $st = DB::conn()->query(
+            "SELECT COUNT(*)
+             FROM categories c
+             WHERE COALESCE(c.status, 'active') = 'active'"
+        );
+
+        return (int)$st->fetchColumn();
+    }
+
     public static function homeFeatured(int $limit = 6): array
     {
         $st = DB::conn()->prepare(

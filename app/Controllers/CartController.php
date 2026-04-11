@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\CartSessionService;
 
 class CartController extends Controller
 {
@@ -11,8 +12,8 @@ class CartController extends Controller
     {
         $this->ensureSession();
 
-        $items = $this->syncCartWithLatestInventory($_SESSION['cart'] ?? []);
-        $_SESSION['cart'] = $items;
+        $items = $this->syncCartWithLatestInventory(CartSessionService::getCurrentCart());
+        CartSessionService::setCurrentCart($items);
         $totalQty = 0;
         $totalAmount = 0;
 
@@ -73,7 +74,7 @@ class CartController extends Controller
         }
 
         $productId = (int)$this->request->input('product_id', 0);
-        $qty = max(1, (int)$this->request->input('qty', 1));
+        $requestedQty = max(1, (int)$this->request->input('qty', 1));
         $buyNow = (int)$this->request->input('buy_now', 0) === 1;
 
         $product = Product::findForCart($productId);
@@ -90,18 +91,12 @@ class CartController extends Controller
             return;
         }
 
-        $cart = $_SESSION['cart'] ?? [];
+        $cart = CartSessionService::getCurrentCart();
         $key = (string)$productId;
 
         $currentQty = (int)($cart[$key]['qty'] ?? 0);
         $maxStock = max(0, (int)$product['stock_total']);
-        $nextQty = $currentQty + $qty;
-
-        if ($maxStock > 0 && $nextQty > $maxStock) {
-            $nextQty = $maxStock;
-        }
-
-        if ($nextQty <= 0) {
+        if ($maxStock <= 0) {
             if ($isAjax) {
                 $this->response->json([
                     'success' => false,
@@ -113,6 +108,23 @@ class CartController extends Controller
             $this->response->redirect('/cart?status=out-of-stock');
             return;
         }
+
+        $availableToAdd = max(0, $maxStock - $currentQty);
+        if ($availableToAdd <= 0) {
+            if ($isAjax) {
+                $this->response->json([
+                    'success' => false,
+                    'message' => 'Sản phẩm đã hết số lượng có thể thêm vào giỏ hàng.',
+                    'cartCount' => $this->getCartCount(),
+                ], 409);
+                return;
+            }
+            $this->response->redirect('/cart?status=stock-limit-reached');
+            return;
+        }
+
+        $qtyToAdd = min($requestedQty, $availableToAdd);
+        $nextQty = $currentQty + $qtyToAdd;
 
         $cart[$key] = [
             'product_id' => (int)$product['id'],
@@ -126,12 +138,17 @@ class CartController extends Controller
             'stock_total' => $maxStock,
         ];
 
-        $_SESSION['cart'] = $cart;
+        CartSessionService::setCurrentCart($cart);
 
         if ($isAjax) {
+            $message = 'Đã thêm sản phẩm vào giỏ hàng.';
+            if ($qtyToAdd < $requestedQty) {
+                $message = 'Sản phẩm chỉ còn ' . $availableToAdd . ' có thể thêm. Đã cập nhật tối đa vào giỏ hàng.';
+            }
+
             $this->response->json([
                 'success' => true,
-                'message' => 'Đã thêm sản phẩm vào giỏ hàng.',
+                'message' => $message,
                 'cartCount' => $this->getCartCount(),
                 'productId' => (int)$product['id'],
                 'qty' => $nextQty,
@@ -141,6 +158,11 @@ class CartController extends Controller
 
         if ($buyNow) {
             $this->response->redirect('/cart?status=buy-now');
+            return;
+        }
+
+        if ($qtyToAdd < $requestedQty) {
+            $this->response->redirect('/cart?status=stock-limited');
             return;
         }
 
@@ -154,7 +176,7 @@ class CartController extends Controller
         $productId = (string)(int)$this->request->input('product_id', 0);
         $qty = (int)$this->request->input('qty', 1);
 
-        $cart = $_SESSION['cart'] ?? [];
+        $cart = CartSessionService::getCurrentCart();
         if (!isset($cart[$productId])) {
             $this->response->redirect('/cart');
             return;
@@ -162,7 +184,7 @@ class CartController extends Controller
 
         if ($qty <= 0) {
             unset($cart[$productId]);
-            $_SESSION['cart'] = $cart;
+            CartSessionService::setCurrentCart($cart);
             $this->response->redirect('/cart?status=removed');
             return;
         }
@@ -177,12 +199,19 @@ class CartController extends Controller
             $cart[$productId]['image'] = trim((string)($freshProduct['image'] ?? ($cart[$productId]['image'] ?? '')));
         }
 
-        if ($maxStock > 0 && $qty > $maxStock) {
+        if ($maxStock <= 0) {
+            unset($cart[$productId]);
+            CartSessionService::setCurrentCart($cart);
+            $this->response->redirect('/cart?status=out-of-stock');
+            return;
+        }
+
+        if ($qty > $maxStock) {
             $qty = $maxStock;
         }
 
         $cart[$productId]['qty'] = $qty;
-        $_SESSION['cart'] = $cart;
+        CartSessionService::setCurrentCart($cart);
         $this->response->redirect('/cart?status=updated');
     }
 
@@ -191,11 +220,11 @@ class CartController extends Controller
         $this->ensureSession();
 
         $productId = (string)(int)$this->request->input('product_id', 0);
-        $cart = $_SESSION['cart'] ?? [];
+        $cart = CartSessionService::getCurrentCart();
 
         if (isset($cart[$productId])) {
             unset($cart[$productId]);
-            $_SESSION['cart'] = $cart;
+            CartSessionService::setCurrentCart($cart);
         }
 
         $this->response->redirect('/cart?status=removed');
@@ -204,7 +233,7 @@ class CartController extends Controller
     public function clear(): void
     {
         $this->ensureSession();
-        unset($_SESSION['cart']);
+        CartSessionService::clearCurrentCart(true);
         $this->response->redirect('/cart?status=cleared');
     }
 
@@ -258,7 +287,7 @@ class CartController extends Controller
     private function getCartCount(): int
     {
         $count = 0;
-        foreach (($_SESSION['cart'] ?? []) as $item) {
+        foreach (CartSessionService::getCurrentCart() as $item) {
             $count += (int)($item['qty'] ?? 0);
         }
 
@@ -285,7 +314,11 @@ class CartController extends Controller
 
             $maxStock = max(0, (int)($fresh['stock_total'] ?? 0));
             $qty = max(1, (int)($item['qty'] ?? 1));
-            if ($maxStock > 0 && $qty > $maxStock) {
+            if ($maxStock <= 0) {
+                continue;
+            }
+
+            if ($qty > $maxStock) {
                 $qty = $maxStock;
             }
 

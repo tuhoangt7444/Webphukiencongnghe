@@ -5,6 +5,7 @@ use App\Core\Controller;
 use App\Core\Security\SecureSession;
 use App\Models\PasswordResetOtp;
 use App\Models\User;
+use App\Services\CartSessionService;
 use App\Services\OtpMailService;
 use App\Services\SecurityLogger;
 
@@ -441,11 +442,28 @@ class AuthController extends Controller
     public function logout(): void
     {
         $this->ensureSession();
+        $cartSnapshot = CartSessionService::getCurrentCart();
+        $userId = (int)($_SESSION['user_id'] ?? 0);
+
+        if ($userId > 0) {
+            CartSessionService::saveForUser($userId, $cartSnapshot);
+        }
 
         SecurityLogger::event('logout', [
-            'user_id' => (int)($_SESSION['user_id'] ?? 0),
+            'user_id' => $userId,
         ]);
-        SecureSession::destroy();
+
+        unset(
+            $_SESSION['user_id'],
+            $_SESSION['user_email'],
+            $_SESSION['user_role_code'],
+            $_SESSION['user_role_id'],
+            $_SESSION['user'],
+            $_SESSION['user_avatar'],
+            $_SESSION['order_form']
+        );
+        CartSessionService::clearCurrentCart(false);
+        session_regenerate_id(true);
 
         $this->response->redirect('/login?status=logout');
     }
@@ -479,6 +497,8 @@ class AuthController extends Controller
         if (isset($user['role_code'])) {
             $_SESSION['user_role_code'] = (string)$user['role_code'];
         }
+
+        CartSessionService::loadCurrentUserCartIntoSession();
     }
 
     private function googleConfig(): array

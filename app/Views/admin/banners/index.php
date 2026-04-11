@@ -6,9 +6,6 @@ $status = $status ?? '';
 
 $positionLabels = [
     'home_slider' => 'Slider trang chủ',
-    'category_banner' => 'Banner danh mục',
-    'promo_banner' => 'Banner quảng cáo',
-    'sidebar_banner' => 'Banner sidebar',
 ];
 
 $queryBase = [
